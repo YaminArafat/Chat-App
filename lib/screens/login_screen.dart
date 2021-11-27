@@ -29,13 +29,15 @@ class _LoginScreenState extends State<LoginScreen> {
     } else if (errorTextEmail == null) {
       errorTextPassword = null;
       Navigator.pushNamed(context, ChatScreen.id);
+    } else {
+      errorTextPassword = null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -59,24 +61,49 @@ class _LoginScreenState extends State<LoginScreen> {
                     email = value;
                   });
                 },
+
+                ///
                 style: TextStyle(
-                  color: Colors.black,
+                  color: inputTextColor,
                   fontFamily: 'Ubuntu',
                   fontSize: 20,
                 ),
                 decoration: InputDecoration(
-                  disabledBorder: borderStyle,
-                  border: borderStyle,
-                  enabledBorder: borderStyle,
+                  ///
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
                   hintText: 'Enter Your Email',
+
+                  ///
                   hintStyle: TextStyle(
-                    fontSize: 20,
                     fontFamily: 'Ubuntu',
-                    color: Colors.black12,
+                    fontSize: 20,
+                    color: hintTextColor,
                   ),
                   prefixIcon: Icon(
                     Icons.email_outlined,
-                    color: Colors.black45,
+
+                    ///
+                    color: iconColor,
                   ),
                   errorText: errorTextEmail,
                   errorStyle: TextStyle(
@@ -85,7 +112,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     //color: Colors.red,
                   ),
                 ),
-                cursorColor: Colors.black,
+
+                ///
+                cursorColor: cursorColor,
               ),
             ),
             Padding(
@@ -102,24 +131,49 @@ class _LoginScreenState extends State<LoginScreen> {
                     password = value;
                   });
                 },
+
+                ///
                 style: TextStyle(
-                  color: Colors.black,
+                  color: inputTextColor,
                   fontFamily: 'Ubuntu',
                   fontSize: 20,
                 ),
                 decoration: InputDecoration(
-                  disabledBorder: borderStyle,
-                  border: borderStyle,
-                  enabledBorder: borderStyle,
+                  ///
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
                   hintText: 'Enter Your Password',
+
+                  ///
                   hintStyle: TextStyle(
-                    fontSize: 20,
                     fontFamily: 'Ubuntu',
-                    color: Colors.black12,
+                    fontSize: 20,
+                    color: hintTextColor,
                   ),
                   prefixIcon: Icon(
                     Icons.password,
-                    color: Colors.black45,
+
+                    ///
+                    color: iconColor,
                   ),
                   errorText: errorTextPassword,
                   errorStyle: TextStyle(
@@ -128,7 +182,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     //color: Colors.red,
                   ),
                 ),
-                cursorColor: Colors.black,
+
+                ///
+                cursorColor: cursorColor,
               ),
             ),
             Padding(
@@ -138,7 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 right: 20,
               ),
               child: CupertinoButton(
-                color: Colors.blue,
+                ///
+                color: Colors.lightBlueAccent,
                 borderRadius: BorderRadius.circular(20),
                 onPressed: () {
                   setState(() {
@@ -150,7 +207,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Ubuntu',
-                    fontSize: 25,
+                    fontSize: 20,
+
+                    ///
                     color: Colors.white,
                     letterSpacing: 2,
                   ),

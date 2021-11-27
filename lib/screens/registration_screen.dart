@@ -68,6 +68,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           errorPassword == null) {
         errorConfirmPassword = null;
         Navigator.pushNamed(context, LoginScreen.id);
+      } else {
+        errorConfirmPassword = null;
       }
     }
   }
@@ -75,6 +77,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      ///
+      backgroundColor: backgroundColor,
       body: Padding(
         padding: EdgeInsets.only(
           top: 50,
@@ -90,7 +94,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               height: 150,
             ),
             RegInfo(
-              icon: Icon(Icons.edit),
+              icon: Icon(
+                Icons.edit,
+
+                ///
+                color: iconColor,
+              ),
               givenErrorText: errorFirstName,
               givenHintText: 'First Name',
               topPadding: 50,
@@ -102,7 +111,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               isPassword: false,
             ),
             RegInfo(
-              icon: Icon(Icons.edit),
+              icon: Icon(
+                Icons.edit,
+
+                ///
+                color: iconColor,
+              ),
               givenErrorText: errorLastName,
               givenHintText: 'Last Name',
               topPadding: 10,
@@ -114,7 +128,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               isPassword: false,
             ),
             RegInfo(
-              icon: Icon(Icons.email_outlined),
+              icon: Icon(
+                Icons.email_outlined,
+
+                ///
+                color: iconColor,
+              ),
               givenErrorText: errorEmail,
               givenHintText: 'Email',
               topPadding: 10,
@@ -126,7 +145,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               isPassword: false,
             ),
             RegInfo(
-              icon: Icon(Icons.call),
+              icon: Icon(
+                Icons.call,
+
+                ///
+                color: iconColor,
+              ),
               givenErrorText: errorMobile,
               givenHintText: 'Mobile No',
               topPadding: 10,
@@ -138,7 +162,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               isPassword: false,
             ),
             RegInfo(
-              icon: Icon(Icons.password),
+              icon: Icon(
+                Icons.password,
+
+                ///
+                color: iconColor,
+              ),
               givenErrorText: errorPassword,
               givenHintText: 'Password',
               topPadding: 10,
@@ -150,7 +179,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               isPassword: true,
             ),
             RegInfo(
-              icon: Icon(Icons.password),
+              icon: Icon(
+                Icons.password,
+
+                ///
+                color: iconColor,
+              ),
               givenErrorText: errorConfirmPassword,
               givenHintText: 'Confirm Password',
               topPadding: 10,
@@ -174,14 +208,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     check();
                   });
                 },
-                color: Colors.blue,
+
+                ///
+                color: Colors.greenAccent,
                 child: Text(
                   'Register',
                   style: TextStyle(
                     fontFamily: 'Ubuntu',
-                    fontSize: 25,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
+
+                    ///
+                    color: Colors.black,
                   ),
                 ),
               ),
@@ -218,23 +257,50 @@ class RegInfo extends StatelessWidget {
       child: TextField(
         obscureText: isPassword,
         onChanged: onComplete,
-        style: inputTextStyle,
+        style: TextStyle(
+          color: inputTextColor,
+          fontFamily: 'Ubuntu',
+          fontSize: 20,
+        ),
         cursorHeight: 20,
         decoration: InputDecoration(
-          enabledBorder: borderStyle,
-          border: borderStyle,
-          disabledBorder: borderStyle,
+          ///
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+            borderSide: BorderSide(
+              color: borderColor,
+              width: 2,
+            ),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+            borderSide: BorderSide(
+              color: borderColor,
+              width: 2,
+            ),
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+            borderSide: BorderSide(
+              color: borderColor,
+              width: 2,
+            ),
+          ),
           errorStyle: TextStyle(
             fontSize: 10,
             fontFamily: 'Ubuntu',
-            color: Colors.red,
+            // color: Colors.red,
           ),
           errorText: givenErrorText,
           prefixIcon: icon,
           hintText: givenHintText,
-          hintStyle: hintTextStyle,
+          hintStyle: TextStyle(
+            fontFamily: 'Ubuntu',
+            fontSize: 20,
+            color: hintTextColor,
+          ),
         ),
-        cursorColor: Colors.black,
+        cursorColor: cursorColor,
       ),
     );
   }
