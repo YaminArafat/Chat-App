@@ -1,4 +1,5 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:we_chat/screens/login_screen.dart';
 import 'package:we_chat/screens/registration_screen.dart';
@@ -10,10 +11,32 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool isDarkMode = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      ///
       backgroundColor: Colors.white,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(
+          top: 40,
+        ),
+        child: Align(
+          alignment: Alignment.topRight,
+          child: Switch(
+            value: isDarkMode,
+
+            ///
+            activeColor: Colors.blue,
+            activeTrackColor: Colors.lightBlue,
+            onChanged: (value) {
+              setState(() {
+                isDarkMode = value;
+              });
+            },
+          ),
+        ),
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24),
         child: Column(
@@ -33,6 +56,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     fontSize: 50,
                     fontFamily: 'Pacifico',
                     fontWeight: FontWeight.bold,
+
+                    ///
                     color: Colors.orangeAccent,
                   ),
                 ),
@@ -43,12 +68,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 top: 50,
                 left: 20,
                 right: 20,
+                bottom: 10,
               ),
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all(Colors.lightBlueAccent),
-                ),
+              child: CupertinoButton(
+                color: Colors.lightBlueAccent,
+                borderRadius: BorderRadius.circular(20),
                 onPressed: () {
                   Navigator.pushNamed(context, LoginScreen.id);
                 },
@@ -58,6 +82,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Ubuntu',
                     fontSize: 20,
+                    letterSpacing: 2,
+
+                    ///
                     color: Colors.white,
                   ),
                 ),
@@ -68,11 +95,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 left: 20,
                 right: 20,
               ),
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all(Colors.greenAccent),
-                ),
+              child: CupertinoButton(
+                color: Colors.greenAccent,
+                borderRadius: BorderRadius.circular(20),
                 onPressed: () {
                   Navigator.pushNamed(context, RegistrationScreen.id);
                 },
@@ -82,6 +107,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Ubuntu',
                     fontSize: 20,
+                    letterSpacing: 2,
+
+                    ///
                     color: Colors.black,
                   ),
                 ),

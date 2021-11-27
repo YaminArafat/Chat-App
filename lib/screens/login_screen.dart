@@ -1,5 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/chat_screen.dart';
@@ -18,21 +19,14 @@ class _LoginScreenState extends State<LoginScreen> {
   void check() {
     if (email.isEmpty) {
       errorTextEmail = 'This field can not be empty.';
-      if (password.isEmpty) {
-        errorTextPassword = 'This field can not be empty.';
-      } else if (password.length < 8) {
-        errorTextPassword = 'Password length must be minimum 8';
-      } else {
-        errorTextPassword = null;
-      }
-    } else if (password.isEmpty) {
-      errorTextEmail = null;
-      errorTextPassword = 'This field can not be empty.';
-    } else if (password.length < 8) {
-      errorTextEmail = null;
-      errorTextPassword = 'Password length must be minimum 8';
     } else {
       errorTextEmail = null;
+    }
+    if (password.isEmpty) {
+      errorTextPassword = 'This field can not be empty.';
+    } else if (password.length < 8) {
+      errorTextPassword = 'Password length must be minimum 8';
+    } else if (errorTextEmail == null) {
       errorTextPassword = null;
       Navigator.pushNamed(context, ChatScreen.id);
     }
@@ -143,10 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 left: 20,
                 right: 20,
               ),
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.blue),
-                ),
+              child: CupertinoButton(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(20),
                 onPressed: () {
                   setState(() {
                     check();
@@ -159,6 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontFamily: 'Ubuntu',
                     fontSize: 25,
                     color: Colors.white,
+                    letterSpacing: 2,
                   ),
                 ),
               ),

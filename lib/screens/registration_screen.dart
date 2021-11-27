@@ -4,15 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/login_screen.dart';
-/*
-enum TextFieldType {
-  firstName,
-  lastName,
-  email,
-  mobile,
-  password,
-  confirmPassword,
-}*/
 
 class RegistrationScreen extends StatefulWidget {
   static String id = '/registration_screen';
@@ -36,34 +27,31 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String confirmPassword = '';
 
   void check() {
-    print('hello');
     if (firstName.isEmpty) {
-      print('firstname empty');
       errorFirstName = 'Name field should not be empty';
-      print(errorFirstName);
     } else {
       errorFirstName = null;
     }
     if (lastName.isEmpty) {
-      errorLastName = 'Name field should not be empty';
+      errorLastName = 'Name field should not be empty.';
     } else {
       errorLastName = null;
     }
     if (email.isEmpty) {
-      errorEmail = 'Email required';
+      errorEmail = 'Email required.';
     } else {
       errorEmail = null;
     }
     if (mobile.isEmpty) {
-      errorMobile = 'This field should not be empty';
+      errorMobile = 'Contact details required.';
     } else {
       errorMobile = null;
     }
     if (password.isEmpty) {
-      errorPassword = 'Password required';
+      errorPassword = 'Password required.';
     } else {
       if (password.length < 8) {
-        errorPassword = 'Password length must be minimum 8';
+        errorPassword = 'Password length must be minimum 8.';
       } else {
         errorPassword = null;
       }
@@ -73,7 +61,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     } else {
       if (confirmPassword != password) {
         errorConfirmPassword = 'Password did not match';
-      } else {
+      } else if (errorFirstName == null &&
+          errorLastName == null &&
+          errorEmail == null &&
+          errorMobile == null &&
+          errorPassword == null) {
         errorConfirmPassword = null;
         Navigator.pushNamed(context, LoginScreen.id);
       }

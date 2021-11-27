@@ -18,3 +18,5 @@ const hintTextStyle = TextStyle(
   fontSize: 20,
   color: Colors.black45,
 );
+Color backgroundColor = Colors.white;
+Color activeSwitchColor = Colors.blue;
