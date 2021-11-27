@@ -4,7 +4,7 @@ import 'package:we_chat/screens/login_screen.dart';
 import 'package:we_chat/screens/registration_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  final String id = '/welcome_screen';
+  static String id = '/welcome_screen';
   @override
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
@@ -31,7 +31,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   'We Chat',
                   style: TextStyle(
                     fontSize: 50,
-                    fontFamily: 'Ubuntu',
+                    fontFamily: 'Pacifico',
                     fontWeight: FontWeight.bold,
                     color: Colors.orangeAccent,
                   ),
@@ -50,7 +50,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       MaterialStateProperty.all(Colors.lightBlueAccent),
                 ),
                 onPressed: () {
-                  Navigator.pushNamed(context, LoginScreen().id);
+                  Navigator.pushNamed(context, LoginScreen.id);
                 },
                 child: Text(
                   'Log In',
@@ -74,7 +74,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       MaterialStateProperty.all(Colors.greenAccent),
                 ),
                 onPressed: () {
-                  Navigator.pushNamed(context, RegistrationScreen().id);
+                  Navigator.pushNamed(context, RegistrationScreen.id);
                 },
                 child: Text(
                   'Register',
