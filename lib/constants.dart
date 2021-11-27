@@ -7,3 +7,14 @@ var borderStyle = OutlineInputBorder(
     width: 2,
   ),
 );
+
+const inputTextStyle = TextStyle(
+  color: Colors.black,
+  fontFamily: 'Ubuntu',
+  fontSize: 20,
+);
+const hintTextStyle = TextStyle(
+  fontFamily: 'Ubuntu',
+  fontSize: 20,
+  color: Colors.black45,
+);
