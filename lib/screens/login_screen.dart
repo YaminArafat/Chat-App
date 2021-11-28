@@ -2,6 +2,8 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:we_chat/components/all_buttons.dart';
+import 'package:we_chat/components/all_textfields.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/chat_screen.dart';
 
@@ -52,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 150,
               ),
             ),
-            Padding(
+            /*Padding(
               padding: const EdgeInsets.only(
                 top: 50,
                 left: 20,
@@ -120,88 +122,43 @@ class _LoginScreenState extends State<LoginScreen> {
                 ///
                 cursorColor: cursorColor,
               ),
+            ),*/
+            RegInfo(
+              togglePassword: false,
+              isPassword: false,
+              onComplete: (value) {
+                setState(() {
+                  email = value;
+                });
+              },
+              topPadding: 50,
+              icon: Icon(
+                Icons.email_outlined,
+                color: iconColor,
+              ),
+              givenErrorText: errorTextEmail,
+              givenHintText: 'Enter Your Email',
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-                left: 20,
-                right: 20,
+            RegInfo(
+              togglePassword: hidePass,
+              isPassword: true,
+              onComplete: (value) {
+                setState(() {
+                  password = value;
+                });
+              },
+              topPadding: 10,
+              icon: Icon(
+                Icons.password,
+                color: iconColor,
               ),
-              child: TextField(
-                obscureText: hidePass,
-                cursorHeight: 20,
-                onChanged: (value) {
-                  setState(() {
-                    password = value;
-                  });
-                },
-
-                ///
-                style: TextStyle(
-                  color: inputTextColor,
-                  fontFamily: 'Ubuntu',
-                  fontSize: 20,
-                ),
-                decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      Icons.remove_red_eye,
-                      color: iconColor,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        hidePass = !hidePass;
-                      });
-                    },
-                  ),
-
-                  ///
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  hintText: 'Enter Your Password',
-
-                  ///
-                  hintStyle: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 20,
-                    color: hintTextColor,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.password,
-
-                    ///
-                    color: iconColor,
-                  ),
-                  errorText: errorTextPassword,
-                  errorStyle: TextStyle(
-                    fontSize: 10,
-                    fontFamily: 'Ubuntu',
-                    //color: Colors.red,
-                  ),
-                ),
-
-                ///
-                cursorColor: cursorColor,
-              ),
+              givenErrorText: errorTextPassword,
+              givenHintText: 'Enter Your Password',
+              showHidePassword: () {
+                setState(() {
+                  hidePass = !hidePass;
+                });
+              },
             ),
             Padding(
               padding: const EdgeInsets.only(

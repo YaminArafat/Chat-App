@@ -30,38 +30,3 @@ Color hintTextColor = Colors.black45;
 Color iconColor = Colors.black45;
 Color borderColor = Colors.black;
 Color cursorColor = Colors.black;
-
-class AllButtons extends StatelessWidget {
-  final Color buttonColor;
-  final Color buttonTextColor;
-  final void Function()? onTap;
-  final String buttonText;
-
-  AllButtons(
-      {required this.buttonText,
-      required this.buttonTextColor,
-      required this.buttonColor,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoButton(
-      ///
-      color: buttonColor,
-      borderRadius: BorderRadius.circular(20),
-      onPressed: onTap,
-      child: Text(
-        buttonText,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Ubuntu',
-          fontSize: 20,
-          letterSpacing: 2,
-
-          ///
-          color: buttonTextColor,
-        ),
-      ),
-    );
-  }
-}
