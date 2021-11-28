@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? errorTextPassword;
   String email = '';
   String password = '';
+  bool hidePass = true;
   void check() {
     if (email.isEmpty) {
       errorTextEmail = 'This field can not be empty.';
@@ -44,9 +45,12 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              child: Image.asset('images/logo.png'),
-              height: 150,
+            Hero(
+              tag: 'logo',
+              child: SizedBox(
+                child: Image.asset('images/logo.png'),
+                height: 150,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(
@@ -124,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 right: 20,
               ),
               child: TextField(
-                obscureText: true,
+                obscureText: hidePass,
                 cursorHeight: 20,
                 onChanged: (value) {
                   setState(() {
@@ -139,6 +143,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontSize: 20,
                 ),
                 decoration: InputDecoration(
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      Icons.remove_red_eye,
+                      color: iconColor,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        hidePass = !hidePass;
+                      });
+                    },
+                  ),
+
                   ///
                   disabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),

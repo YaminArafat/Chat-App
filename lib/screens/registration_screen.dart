@@ -26,6 +26,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String password = '';
   String confirmPassword = '';
 
+  bool hidePassword = true;
+  bool hideConfirmPassword = true;
+
   void check() {
     if (firstName.isEmpty) {
       errorFirstName = 'Name field should not be empty';
@@ -89,9 +92,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           // mainAxisAlignment: MainAxisAlignment.center,
           // crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              child: Image.asset('images/logo.png'),
-              height: 150,
+            Hero(
+              tag: 'logo',
+              child: SizedBox(
+                child: Image.asset('images/logo.png'),
+                height: 150,
+              ),
             ),
             RegInfo(
               icon: Icon(
@@ -109,6 +115,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 });
               },
               isPassword: false,
+              togglePassword: false,
             ),
             RegInfo(
               icon: Icon(
@@ -126,6 +133,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 });
               },
               isPassword: false,
+              togglePassword: false,
             ),
             RegInfo(
               icon: Icon(
@@ -143,6 +151,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 });
               },
               isPassword: false,
+              togglePassword: false,
             ),
             RegInfo(
               icon: Icon(
@@ -160,6 +169,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 });
               },
               isPassword: false,
+              togglePassword: false,
             ),
             RegInfo(
               icon: Icon(
@@ -177,6 +187,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 });
               },
               isPassword: true,
+              togglePassword: hidePassword,
+              showHidePassword: () {
+                setState(() {
+                  hidePassword = !hidePassword;
+                });
+              },
             ),
             RegInfo(
               icon: Icon(
@@ -194,6 +210,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 });
               },
               isPassword: true,
+              togglePassword: hideConfirmPassword,
+              showHidePassword: () {
+                setState(() {
+                  hideConfirmPassword = !hideConfirmPassword;
+                });
+              },
             ),
             Padding(
               padding: EdgeInsets.only(
@@ -239,13 +261,17 @@ class RegInfo extends StatelessWidget {
   final double topPadding;
   final void Function(String)? onComplete;
   final bool isPassword;
+  final bool togglePassword;
+  final void Function()? showHidePassword;
   RegInfo(
       {required this.icon,
       required this.givenErrorText,
       required this.givenHintText,
       required this.topPadding,
       required this.onComplete,
-      required this.isPassword});
+      required this.isPassword,
+      required this.togglePassword,
+      this.showHidePassword});
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -255,7 +281,7 @@ class RegInfo extends StatelessWidget {
         right: 20,
       ),
       child: TextField(
-        obscureText: isPassword,
+        obscureText: togglePassword,
         onChanged: onComplete,
         style: TextStyle(
           color: inputTextColor,
@@ -264,6 +290,16 @@ class RegInfo extends StatelessWidget {
         ),
         cursorHeight: 20,
         decoration: InputDecoration(
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(
+                    Icons.remove_red_eye,
+                    color: iconColor,
+                  ),
+                  onPressed: showHidePassword,
+                )
+              : null,
+
           ///
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20.0),

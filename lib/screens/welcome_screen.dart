@@ -70,9 +70,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  child: Image.asset('images/logo.png'),
-                  height: 60,
+                Hero(
+                  tag: 'logo',
+                  child: SizedBox(
+                    child: Image.asset('images/logo.png'),
+                    height: 60,
+                  ),
                 ),
                 Text(
                   'We Chat',
