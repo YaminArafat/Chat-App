@@ -29,7 +29,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool hidePassword = true;
   bool hideConfirmPassword = true;
 
-  void check() {
+  void regCheck() {
     if (firstName.isEmpty) {
       errorFirstName = 'Name field should not be empty';
     } else {
@@ -223,28 +223,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 left: 20,
                 right: 20,
               ),
-              child: CupertinoButton(
-                borderRadius: BorderRadius.circular(20),
-                onPressed: () {
+              child: AllButtons(
+                buttonText: 'Register',
+                buttonColor: Colors.greenAccent,
+                buttonTextColor: Colors.black,
+                onTap: () {
                   setState(() {
-                    check();
+                    regCheck();
                   });
                 },
-
-                ///
-                color: Colors.greenAccent,
-                child: Text(
-                  'Register',
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-
-                    ///
-                    color: Colors.black,
-                  ),
-                ),
               ),
             ),
           ],

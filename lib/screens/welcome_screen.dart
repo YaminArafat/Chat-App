@@ -1,4 +1,5 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_literals_to_create_immutables, deprecated_member_use
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:we_chat/constants.dart';
@@ -11,8 +12,30 @@ class WelcomeScreen extends StatefulWidget {
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with TickerProviderStateMixin {
   bool isDarkMode = false;
+  late AnimationController animationControllerLogo;
+  late Animation curvedAnimation;
+  @override
+  void initState() {
+    super.initState();
+    animationControllerLogo = AnimationController(
+      duration: Duration(
+        milliseconds: 600,
+      ),
+      vsync: this,
+      //upperBound: 60,
+    );
+    curvedAnimation = CurvedAnimation(
+        parent: animationControllerLogo, curve: Curves.easeOutBack);
+    animationControllerLogo.forward();
+    animationControllerLogo.addListener(() {
+      setState(() {});
+      //print(curvedAnimation.value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,8 +51,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             value: isDarkMode,
 
             ///
-            activeColor: activeSwitchColor,
-            activeTrackColor: activeSwitchTrackColor,
+            //activeColor: activeSwitchColor,
+            //activeTrackColor: activeSwitchTrackColor,
             //inactiveTrackColor: inactiveSwitchTrackColor,
             onChanged: (value) {
               setState(() {
@@ -74,19 +97,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   tag: 'logo',
                   child: SizedBox(
                     child: Image.asset('images/logo.png'),
-                    height: 60,
+                    height: curvedAnimation.value * 60,
                   ),
                 ),
-                Text(
-                  'We Chat',
-                  style: TextStyle(
-                    fontSize: 50,
-                    fontFamily: 'Pacifico',
-                    fontWeight: FontWeight.bold,
+                AnimatedTextKit(
+                  animatedTexts: [
+                    TyperAnimatedText(
+                      'We Chat',
+                      speed: Duration(
+                        milliseconds: 200,
+                      ),
+                      textStyle: TextStyle(
+                        fontSize: 50,
+                        fontFamily: 'Pacifico',
+                        fontWeight: FontWeight.bold,
 
-                    ///
-                    color: Colors.orangeAccent,
-                  ),
+                        ///
+                        color: Colors.orangeAccent,
+                      ),
+                    ),
+                  ],
+                  isRepeatingAnimation: false,
                 ),
               ],
             ),
@@ -97,25 +128,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 right: 20,
                 bottom: 10,
               ),
-              child: CupertinoButton(
-                ///
-                color: Colors.lightBlueAccent,
-                borderRadius: BorderRadius.circular(20),
-                onPressed: () {
+              child: AllButtons(
+                buttonText: 'Log In',
+                buttonColor: Colors.lightBlueAccent,
+                buttonTextColor: Colors.white,
+                onTap: () {
                   Navigator.pushNamed(context, LoginScreen.id);
                 },
-                child: Text(
-                  'Log In',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Ubuntu',
-                    fontSize: 20,
-                    letterSpacing: 2,
-
-                    ///
-                    color: Colors.white,
-                  ),
-                ),
               ),
             ),
             Padding(
@@ -123,25 +142,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 left: 20,
                 right: 20,
               ),
-              child: CupertinoButton(
-                ///
-                color: Colors.greenAccent,
-                borderRadius: BorderRadius.circular(20),
-                onPressed: () {
+              child: AllButtons(
+                buttonText: 'Register',
+                buttonTextColor: Colors.black,
+                buttonColor: Colors.greenAccent,
+                onTap: () {
                   Navigator.pushNamed(context, RegistrationScreen.id);
                 },
-                child: Text(
-                  'Register',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Ubuntu',
-                    fontSize: 20,
-                    letterSpacing: 2,
-
-                    ///
-                    color: Colors.black,
-                  ),
-                ),
               ),
             ),
           ],

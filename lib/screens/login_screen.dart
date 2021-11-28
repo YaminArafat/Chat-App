@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String email = '';
   String password = '';
   bool hidePass = true;
-  void check() {
+  void loginCheck() {
     if (email.isEmpty) {
       errorTextEmail = 'This field can not be empty.';
     } else {
@@ -209,27 +209,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 left: 20,
                 right: 20,
               ),
-              child: CupertinoButton(
-                ///
-                color: Colors.lightBlueAccent,
-                borderRadius: BorderRadius.circular(20),
-                onPressed: () {
+              child: AllButtons(
+                buttonText: 'Log In',
+                buttonColor: Colors.lightBlueAccent,
+                buttonTextColor: Colors.white,
+                onTap: () {
                   setState(() {
-                    check();
+                    loginCheck();
                   });
                 },
-                child: Text(
-                  'Log In',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Ubuntu',
-                    fontSize: 20,
-
-                    ///
-                    color: Colors.white,
-                    letterSpacing: 2,
-                  ),
-                ),
               ),
             ),
           ],
