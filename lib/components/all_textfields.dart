@@ -12,6 +12,7 @@ class RegInfo extends StatelessWidget {
   final bool isPassword;
   final bool togglePassword;
   final void Function()? showHidePassword;
+  final TextInputType? inputType;
   RegInfo(
       {required this.icon,
       required this.givenErrorText,
@@ -20,7 +21,8 @@ class RegInfo extends StatelessWidget {
       required this.onComplete,
       required this.isPassword,
       required this.togglePassword,
-      this.showHidePassword});
+      this.showHidePassword,
+      this.inputType});
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -30,6 +32,7 @@ class RegInfo extends StatelessWidget {
         right: 20,
       ),
       child: TextField(
+        keyboardType: inputType,
         obscureText: togglePassword,
         onChanged: onComplete,
         style: TextStyle(

@@ -1,5 +1,6 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_constructors_in_immutables, must_be_immutable, avoid_print
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_constructors_in_immutables, must_be_immutable, avoid_print, unnecessary_null_comparison
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:we_chat/components/all_buttons.dart';
@@ -31,7 +32,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool hidePassword = true;
   bool hideConfirmPassword = true;
 
-  void regCheck() {
+  final _auth = FirebaseAuth.instance;
+
+  void regCheck() async {
     if (firstName.isEmpty) {
       errorFirstName = 'Name field should not be empty';
     } else {
@@ -72,7 +75,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           errorMobile == null &&
           errorPassword == null) {
         errorConfirmPassword = null;
-        Navigator.pushNamed(context, LoginScreen.id);
+        try {
+          final newUser = await _auth.createUserWithEmailAndPassword(
+              email: email, password: password);
+          if (newUser != null) {
+            Navigator.pushNamed(context, LoginScreen.id);
+          }
+        } catch (e) {
+          print(e);
+        }
       } else {
         errorConfirmPassword = null;
       }
@@ -118,6 +129,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               },
               isPassword: false,
               togglePassword: false,
+              inputType: TextInputType.name,
             ),
             RegInfo(
               icon: Icon(
@@ -136,6 +148,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               },
               isPassword: false,
               togglePassword: false,
+              inputType: TextInputType.name,
             ),
             RegInfo(
               icon: Icon(
@@ -154,6 +167,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               },
               isPassword: false,
               togglePassword: false,
+              inputType: TextInputType.emailAddress,
             ),
             RegInfo(
               icon: Icon(
@@ -172,6 +186,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               },
               isPassword: false,
               togglePassword: false,
+              inputType: TextInputType.phone,
             ),
             RegInfo(
               icon: Icon(

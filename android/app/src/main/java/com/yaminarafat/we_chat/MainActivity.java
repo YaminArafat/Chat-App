@@ -1,4 +1,4 @@
-package com.example.we_chat;
+package com.yaminarafat.we_chat;
 
 import io.flutter.embedding.android.FlutterActivity;
 

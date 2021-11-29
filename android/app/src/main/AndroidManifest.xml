@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.we_chat">
+    package="com.yaminarafat.we_chat">
    <application
         android:label="We Chat"
         android:icon="@mipmap/ic_launcher">

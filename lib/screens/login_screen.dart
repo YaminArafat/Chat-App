@@ -138,6 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               givenErrorText: errorTextEmail,
               givenHintText: 'Enter Your Email',
+              inputType: TextInputType.emailAddress,
             ),
             RegInfo(
               togglePassword: hidePass,
