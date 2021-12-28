@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/components/all_buttons.dart';
 import 'package:we_chat/components/all_textfields.dart';
 import 'package:we_chat/constants.dart';
@@ -83,6 +84,51 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           }
         } catch (e) {
           print(e);
+          String errorLogin = e.toString().substring(30);
+          Alert(
+            context: context,
+            title: 'Registration Unsuccessful!!',
+            desc: errorLogin,
+            closeIcon: Icon(
+              Icons.close,
+              color: Colors.white,
+            ),
+            buttons: [
+              DialogButton(
+                color: Colors.green,
+                width: 100,
+                height: 30,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Try Again',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontFamily: "Ubuntu",
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+            style: AlertStyle(
+              backgroundColor: Colors.blueAccent,
+              isButtonVisible: true,
+              titleStyle: TextStyle(
+                color: Colors.redAccent,
+                fontFamily: 'Ubuntu',
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+                //backgroundColor: Colors.orangeAccent,
+              ),
+              descStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontFamily: 'Ubuntu',
+              ),
+            ),
+          ).show();
         }
       } else {
         errorConfirmPassword = null;
@@ -233,6 +279,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   hideConfirmPassword = !hideConfirmPassword;
                 });
               },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, LoginScreen.id);
+                    },
+                    child: Text(
+                      'Already have an account? Sign In',
+                      style: TextStyle(
+                        color: lowerTextColor,
+                        fontFamily: 'Ubuntu',
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Padding(
               padding: EdgeInsets.only(

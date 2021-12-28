@@ -30,3 +30,4 @@ Color hintTextColor = Colors.black45;
 Color iconColor = Colors.black45;
 Color borderColor = Colors.black;
 Color cursorColor = Colors.black;
+Color lowerTextColor = Colors.blue;

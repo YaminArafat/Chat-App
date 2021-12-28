@@ -1,11 +1,14 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, unnecessary_null_comparison
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/components/all_buttons.dart';
 import 'package:we_chat/components/all_textfields.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/chat_screen.dart';
+import 'package:we_chat/screens/registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static String id = '/login_Screen';
@@ -19,7 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
   String email = '';
   String password = '';
   bool hidePass = true;
-  void loginCheck() {
+
+  final _auth = FirebaseAuth.instance;
+  void loginCheck() async {
     if (email.isEmpty) {
       errorTextEmail = 'This field can not be empty.';
     } else {
@@ -31,7 +36,60 @@ class _LoginScreenState extends State<LoginScreen> {
       errorTextPassword = 'Password length must be minimum 8';
     } else if (errorTextEmail == null) {
       errorTextPassword = null;
-      Navigator.pushNamed(context, ChatScreen.id);
+      try {
+        final loginUser = await _auth.signInWithEmailAndPassword(
+            email: email, password: password);
+        if (loginUser != null) {
+          Navigator.pushNamed(context, ChatScreen.id);
+        }
+      } catch (e) {
+        print(e);
+        String errorLogin = e.toString().substring(30);
+        Alert(
+          context: context,
+          title: 'Log In Failed!!',
+          desc: errorLogin,
+          closeIcon: Icon(
+            Icons.close,
+            color: Colors.white,
+          ),
+          buttons: [
+            DialogButton(
+              color: Colors.green,
+              width: 100,
+              height: 30,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Try Again',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "Ubuntu",
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+          style: AlertStyle(
+            backgroundColor: Colors.blueAccent,
+            isButtonVisible: true,
+            titleStyle: TextStyle(
+              color: Colors.redAccent,
+              fontFamily: 'Ubuntu',
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              //backgroundColor: Colors.orangeAccent,
+            ),
+            descStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontFamily: 'Ubuntu',
+            ),
+          ),
+        ).show();
+      }
     } else {
       errorTextPassword = null;
     }
@@ -160,6 +218,38 @@ class _LoginScreenState extends State<LoginScreen> {
                   hidePass = !hidePass;
                 });
               },
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      'Forget Password?',
+                      style: TextStyle(
+                        color: lowerTextColor,
+                        fontFamily: 'Ubuntu',
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, RegistrationScreen.id);
+                    },
+                    child: Text(
+                      'New Here? Sign Up',
+                      style: TextStyle(
+                        color: lowerTextColor,
+                        fontFamily: 'Ubuntu',
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(
