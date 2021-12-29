@@ -1,9 +1,12 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_constructors_in_immutables, must_be_immutable, avoid_print, unnecessary_null_comparison
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_constructors_in_immutables, must_be_immutable, avoid_print, unnecessary_null_comparison, prefer_const_literals_to_create_immutables, prefer_typing_uninitialized_variables, avoid_init_to_null
+
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/components/all_buttons.dart';
@@ -166,6 +169,41 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
+  var img = null;
+  void galleryPicker() async {
+    try {
+      final pickedImg =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedImg != null) {
+        setState(() {
+          img = Image.file(
+            File(pickedImg.path),
+          ).image;
+        });
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void cameraPicker() async {
+    try {
+      final pickedImg =
+          await ImagePicker().pickImage(source: ImageSource.camera);
+      if (pickedImg != null) {
+        setState(() {
+          img = Image.file(
+            File(pickedImg.path),
+          ).image;
+        });
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,12 +221,113 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             // mainAxisAlignment: MainAxisAlignment.center,
             // crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Hero(
+              /*Hero(
                 tag: 'logo',
                 child: SizedBox(
                   child: Image.asset('images/logo.png'),
-                  height: 150,
+                  height: 100,
                 ),
+              ),*/
+              CircleAvatar(
+                child: (img == null)
+                    ? TextButton(
+                        onPressed: () {
+                          Alert(
+                            context: context,
+                            title: 'Choose your option',
+                            closeIcon: Icon(
+                              Icons.close,
+                              color: Colors.black,
+                            ),
+                            buttons: [
+                              DialogButton(
+                                color: Colors.blueAccent,
+                                width: 100,
+                                height: 30,
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontFamily: "Ubuntu",
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            style: AlertStyle(
+                              titleStyle: TextStyle(
+                                fontFamily: 'Ubuntu',
+                                fontSize: 20,
+                              ),
+                            ),
+                            content: Column(
+                              children: [
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Divider(
+                                  color: Colors.black,
+                                  thickness: 2,
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Icon(
+                                      Icons.account_box_outlined,
+                                      color: Colors.green,
+                                      size: 30,
+                                    ),
+                                    ImgPickOp(
+                                      color: Colors.green,
+                                      text: 'Gallery',
+                                      onPress: () {
+                                        galleryPicker();
+                                      },
+                                    ),
+                                    VerticalDivider(
+                                      color: Colors.black,
+                                    ),
+                                    Icon(
+                                      Icons.camera_alt_outlined,
+                                      color: Colors.blueGrey,
+                                      size: 30,
+                                    ),
+                                    ImgPickOp(
+                                      color: Colors.blueGrey,
+                                      text: 'Camera',
+                                      onPress: () {
+                                        cameraPicker();
+                                      },
+                                    )
+                                  ],
+                                ),
+                                Divider(
+                                  color: Colors.black,
+                                  thickness: 2,
+                                ),
+                              ],
+                            ),
+                          ).show();
+                        },
+                        child: Text(
+                          'Add Image',
+                          style: TextStyle(
+                            fontFamily: 'Ubuntu',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      )
+                    : null,
+                backgroundColor: (img == null) ? Colors.blueAccent : null,
+                radius: 100,
+                backgroundImage: (img == null) ? null : img,
               ),
               RegInfo(
                 icon: Icon(
@@ -199,7 +338,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
                 givenErrorText: errorFirstName,
                 givenHintText: 'First Name',
-                topPadding: 50,
+                topPadding: 20,
                 onComplete: (value) {
                   setState(() {
                     _firstName = value;
@@ -312,6 +451,109 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   });
                 },
               ),
+              /* Padding(
+                padding: const EdgeInsets.only(
+                  left: 24.0,
+                  right: 24,
+                  top: 4,
+                ),
+                child: MaterialButton(
+                  shape: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  onPressed: () {
+                    Alert(
+                      context: context,
+                      title: 'Choose your option',
+                      closeIcon: Icon(
+                        Icons.close,
+                        color: Colors.black,
+                      ),
+                      buttons: [
+                        DialogButton(
+                          color: Colors.blueAccent,
+                          width: 100,
+                          height: 30,
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontFamily: "Ubuntu",
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                      style: AlertStyle(
+                        titleStyle: TextStyle(
+                          fontFamily: 'Ubuntu',
+                          fontSize: 20,
+                        ),
+                      ),
+                      content: Column(
+                        children: [
+                          SizedBox(
+                            height: 10,
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            thickness: 2,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Icon(
+                                Icons.account_box_outlined,
+                                color: Colors.green,
+                                size: 30,
+                              ),
+                              ImgPickOp(
+                                color: Colors.green,
+                                text: 'Gallery',
+                                onPress: () {
+                                  galleryPicker();
+                                },
+                              ),
+                              VerticalDivider(
+                                color: Colors.black,
+                              ),
+                              Icon(
+                                Icons.camera_alt_outlined,
+                                color: Colors.blueGrey,
+                                size: 30,
+                              ),
+                              ImgPickOp(
+                                color: Colors.blueGrey,
+                                text: 'Camera',
+                                onPress: () {
+                                  cameraPicker();
+                                },
+                              )
+                            ],
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            thickness: 2,
+                          ),
+                        ],
+                      ),
+                    ).show();
+                  },
+                  color: Colors.lightBlue,
+                  child: Text(
+                    'Add Image',
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      color: Colors.white,
+                      fontSize: 15,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+              ),*/
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(
@@ -352,6 +594,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ImgPickOp extends StatelessWidget {
+  final Color color;
+  final String text;
+  final Function() onPress;
+
+  ImgPickOp({required this.color, required this.text, required this.onPress});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPress,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Ubuntu',
+          color: color,
+          fontSize: 20,
+          letterSpacing: 1.5,
         ),
       ),
     );
