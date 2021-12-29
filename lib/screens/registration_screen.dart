@@ -1,8 +1,10 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_constructors_in_immutables, must_be_immutable, avoid_print, unnecessary_null_comparison
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/components/all_buttons.dart';
 import 'package:we_chat/components/all_textfields.dart';
@@ -23,52 +25,54 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String? errorPassword;
   String? errorConfirmPassword;
 
-  String firstName = '';
-  String lastName = '';
-  String email = '';
-  String mobile = '';
-  String password = '';
-  String confirmPassword = '';
+  String _firstName = '';
+  String _lastName = '';
+  String _email = '';
+  String _mobile = '';
+  String _password = '';
+  String _confirmPassword = '';
 
   bool hidePassword = true;
   bool hideConfirmPassword = true;
 
   final _auth = FirebaseAuth.instance;
+  final _userInfo = FirebaseFirestore.instance;
+  bool loading = false;
 
   void regCheck() async {
-    if (firstName.isEmpty) {
+    if (_firstName.isEmpty) {
       errorFirstName = 'Name field should not be empty';
     } else {
       errorFirstName = null;
     }
-    if (lastName.isEmpty) {
+    if (_lastName.isEmpty) {
       errorLastName = 'Name field should not be empty.';
     } else {
       errorLastName = null;
     }
-    if (email.isEmpty) {
+    if (_email.isEmpty) {
       errorEmail = 'Email required.';
     } else {
       errorEmail = null;
     }
-    if (mobile.isEmpty) {
+    if (_mobile.isEmpty) {
       errorMobile = 'Contact details required.';
     } else {
       errorMobile = null;
     }
-    if (password.isEmpty) {
+    if (_password.isEmpty) {
       errorPassword = 'Password required.';
     } else {
-      if (password.length < 8) {
+      if (_password.length < 8) {
         errorPassword = 'Password length must be minimum 8.';
       } else {
         errorPassword = null;
       }
     }
-    if (confirmPassword.isEmpty) {
+    if (_confirmPassword.isEmpty) {
       errorConfirmPassword = 'Confirm your password';
     } else {
-      if (confirmPassword != password) {
+      if (_confirmPassword != _password) {
         errorConfirmPassword = 'Password did not match';
       } else if (errorFirstName == null &&
           errorLastName == null &&
@@ -77,10 +81,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           errorPassword == null) {
         errorConfirmPassword = null;
         try {
+          setState(() {
+            loading = true;
+          });
           final newUser = await _auth.createUserWithEmailAndPassword(
-              email: email, password: password);
+              email: _email, password: _password);
+
           if (newUser != null) {
+            _userInfo.collection("UserInfo").add({
+              'Email': _email,
+              'First Name': _firstName,
+              'Last Name': _lastName,
+              'Mobile No': _mobile,
+              'Password': _password,
+            });
             Navigator.pushNamed(context, LoginScreen.id);
+            setState(() {
+              loading = false;
+            });
           }
         } catch (e) {
           print(e);
@@ -93,6 +111,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               Icons.close,
               color: Colors.white,
             ),
+            closeFunction: () {
+              Navigator.pop(context);
+              setState(() {
+                loading = false;
+              });
+            },
             buttons: [
               DialogButton(
                 color: Colors.green,
@@ -100,6 +124,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 height: 30,
                 onPressed: () {
                   Navigator.pop(context);
+                  setState(() {
+                    loading = false;
+                  });
                 },
                 child: Text(
                   'Try Again',
@@ -141,184 +168,187 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     return Scaffold(
       ///
       backgroundColor: backgroundColor,
-      body: Padding(
-        padding: EdgeInsets.only(
-          top: 50,
-          left: 24,
-          right: 24,
-        ),
-        child: ListView(
-          // mainAxisAlignment: MainAxisAlignment.center,
-          // crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Hero(
-              tag: 'logo',
-              child: SizedBox(
-                child: Image.asset('images/logo.png'),
-                height: 150,
+      body: ModalProgressHUD(
+        inAsyncCall: loading,
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: 50,
+            left: 24,
+            right: 24,
+          ),
+          child: ListView(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Hero(
+                tag: 'logo',
+                child: SizedBox(
+                  child: Image.asset('images/logo.png'),
+                  height: 150,
+                ),
               ),
-            ),
-            RegInfo(
-              icon: Icon(
-                Icons.edit,
+              RegInfo(
+                icon: Icon(
+                  Icons.edit,
 
-                ///
-                color: iconColor,
-              ),
-              givenErrorText: errorFirstName,
-              givenHintText: 'First Name',
-              topPadding: 50,
-              onComplete: (value) {
-                setState(() {
-                  firstName = value;
-                });
-              },
-              isPassword: false,
-              togglePassword: false,
-              inputType: TextInputType.name,
-            ),
-            RegInfo(
-              icon: Icon(
-                Icons.edit,
-
-                ///
-                color: iconColor,
-              ),
-              givenErrorText: errorLastName,
-              givenHintText: 'Last Name',
-              topPadding: 10,
-              onComplete: (value) {
-                setState(() {
-                  lastName = value;
-                });
-              },
-              isPassword: false,
-              togglePassword: false,
-              inputType: TextInputType.name,
-            ),
-            RegInfo(
-              icon: Icon(
-                Icons.email_outlined,
-
-                ///
-                color: iconColor,
-              ),
-              givenErrorText: errorEmail,
-              givenHintText: 'Email',
-              topPadding: 10,
-              onComplete: (value) {
-                setState(() {
-                  email = value;
-                });
-              },
-              isPassword: false,
-              togglePassword: false,
-              inputType: TextInputType.emailAddress,
-            ),
-            RegInfo(
-              icon: Icon(
-                Icons.call,
-
-                ///
-                color: iconColor,
-              ),
-              givenErrorText: errorMobile,
-              givenHintText: 'Mobile No',
-              topPadding: 10,
-              onComplete: (value) {
-                setState(() {
-                  mobile = value;
-                });
-              },
-              isPassword: false,
-              togglePassword: false,
-              inputType: TextInputType.phone,
-            ),
-            RegInfo(
-              icon: Icon(
-                Icons.password,
-
-                ///
-                color: iconColor,
-              ),
-              givenErrorText: errorPassword,
-              givenHintText: 'Password',
-              topPadding: 10,
-              onComplete: (value) {
-                setState(() {
-                  password = value;
-                });
-              },
-              isPassword: true,
-              togglePassword: hidePassword,
-              showHidePassword: () {
-                setState(() {
-                  hidePassword = !hidePassword;
-                });
-              },
-            ),
-            RegInfo(
-              icon: Icon(
-                Icons.password,
-
-                ///
-                color: iconColor,
-              ),
-              givenErrorText: errorConfirmPassword,
-              givenHintText: 'Confirm Password',
-              topPadding: 10,
-              onComplete: (value) {
-                setState(() {
-                  confirmPassword = value;
-                });
-              },
-              isPassword: true,
-              togglePassword: hideConfirmPassword,
-              showHidePassword: () {
-                setState(() {
-                  hideConfirmPassword = !hideConfirmPassword;
-                });
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, LoginScreen.id);
-                    },
-                    child: Text(
-                      'Already have an account? Sign In',
-                      style: TextStyle(
-                        color: lowerTextColor,
-                        fontFamily: 'Ubuntu',
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-              ),
-              child: AllButtons(
-                buttonText: 'Register',
-                buttonColor: Colors.greenAccent,
-                buttonTextColor: Colors.black,
-                onTap: () {
+                  ///
+                  color: iconColor,
+                ),
+                givenErrorText: errorFirstName,
+                givenHintText: 'First Name',
+                topPadding: 50,
+                onComplete: (value) {
                   setState(() {
-                    regCheck();
+                    _firstName = value;
+                  });
+                },
+                isPassword: false,
+                togglePassword: false,
+                inputType: TextInputType.name,
+              ),
+              RegInfo(
+                icon: Icon(
+                  Icons.edit,
+
+                  ///
+                  color: iconColor,
+                ),
+                givenErrorText: errorLastName,
+                givenHintText: 'Last Name',
+                topPadding: 10,
+                onComplete: (value) {
+                  setState(() {
+                    _lastName = value;
+                  });
+                },
+                isPassword: false,
+                togglePassword: false,
+                inputType: TextInputType.name,
+              ),
+              RegInfo(
+                icon: Icon(
+                  Icons.email_outlined,
+
+                  ///
+                  color: iconColor,
+                ),
+                givenErrorText: errorEmail,
+                givenHintText: 'Email',
+                topPadding: 10,
+                onComplete: (value) {
+                  setState(() {
+                    _email = value;
+                  });
+                },
+                isPassword: false,
+                togglePassword: false,
+                inputType: TextInputType.emailAddress,
+              ),
+              RegInfo(
+                icon: Icon(
+                  Icons.call,
+
+                  ///
+                  color: iconColor,
+                ),
+                givenErrorText: errorMobile,
+                givenHintText: 'Mobile No',
+                topPadding: 10,
+                onComplete: (value) {
+                  setState(() {
+                    _mobile = value;
+                  });
+                },
+                isPassword: false,
+                togglePassword: false,
+                inputType: TextInputType.phone,
+              ),
+              RegInfo(
+                icon: Icon(
+                  Icons.password,
+
+                  ///
+                  color: iconColor,
+                ),
+                givenErrorText: errorPassword,
+                givenHintText: 'Password',
+                topPadding: 10,
+                onComplete: (value) {
+                  setState(() {
+                    _password = value;
+                  });
+                },
+                isPassword: true,
+                togglePassword: hidePassword,
+                showHidePassword: () {
+                  setState(() {
+                    hidePassword = !hidePassword;
                   });
                 },
               ),
-            ),
-          ],
+              RegInfo(
+                icon: Icon(
+                  Icons.password,
+
+                  ///
+                  color: iconColor,
+                ),
+                givenErrorText: errorConfirmPassword,
+                givenHintText: 'Confirm Password',
+                topPadding: 10,
+                onComplete: (value) {
+                  setState(() {
+                    _confirmPassword = value;
+                  });
+                },
+                isPassword: true,
+                togglePassword: hideConfirmPassword,
+                showHidePassword: () {
+                  setState(() {
+                    hideConfirmPassword = !hideConfirmPassword;
+                  });
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, LoginScreen.id);
+                      },
+                      child: Text(
+                        'Already have an account? Sign In',
+                        style: TextStyle(
+                          color: lowerTextColor,
+                          fontFamily: 'Ubuntu',
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 20,
+                  left: 20,
+                  right: 20,
+                ),
+                child: AllButtons(
+                  buttonText: 'Register',
+                  buttonColor: Colors.greenAccent,
+                  buttonTextColor: Colors.black,
+                  onTap: () {
+                    setState(() {
+                      regCheck();
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

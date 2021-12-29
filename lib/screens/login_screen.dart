@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/components/all_buttons.dart';
 import 'package:we_chat/components/all_textfields.dart';
@@ -19,28 +20,35 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   String? errorTextEmail;
   String? errorTextPassword;
-  String email = '';
-  String password = '';
+  String _email = '';
+  String _password = '';
   bool hidePass = true;
+  bool loading = false;
 
   final _auth = FirebaseAuth.instance;
   void loginCheck() async {
-    if (email.isEmpty) {
+    if (_email.isEmpty) {
       errorTextEmail = 'This field can not be empty.';
     } else {
       errorTextEmail = null;
     }
-    if (password.isEmpty) {
+    if (_password.isEmpty) {
       errorTextPassword = 'This field can not be empty.';
-    } else if (password.length < 8) {
+    } else if (_password.length < 8) {
       errorTextPassword = 'Password length must be minimum 8';
     } else if (errorTextEmail == null) {
       errorTextPassword = null;
       try {
+        setState(() {
+          loading = true;
+        });
         final loginUser = await _auth.signInWithEmailAndPassword(
-            email: email, password: password);
+            email: _email, password: _password);
         if (loginUser != null) {
           Navigator.pushNamed(context, ChatScreen.id);
+          setState(() {
+            loading = false;
+          });
         }
       } catch (e) {
         print(e);
@@ -53,6 +61,12 @@ class _LoginScreenState extends State<LoginScreen> {
             Icons.close,
             color: Colors.white,
           ),
+          closeFunction: () {
+            Navigator.pop(context);
+            setState(() {
+              loading = false;
+            });
+          },
           buttons: [
             DialogButton(
               color: Colors.green,
@@ -60,6 +74,9 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 30,
               onPressed: () {
                 Navigator.pop(context);
+                setState(() {
+                  loading = false;
+                });
               },
               child: Text(
                 'Try Again',
@@ -99,176 +116,179 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Hero(
-              tag: 'logo',
-              child: SizedBox(
-                child: Image.asset('images/logo.png'),
-                height: 150,
-              ),
-            ),
-            /*Padding(
-              padding: const EdgeInsets.only(
-                top: 50,
-                left: 20,
-                right: 20,
-              ),
-              child: TextField(
-                cursorHeight: 20,
-                onChanged: (value) {
-                  setState(() {
-                    email = value;
-                  });
-                },
-
-                ///
-                style: TextStyle(
-                  color: inputTextColor,
-                  fontFamily: 'Ubuntu',
-                  fontSize: 20,
+      body: ModalProgressHUD(
+        inAsyncCall: loading,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Hero(
+                tag: 'logo',
+                child: SizedBox(
+                  child: Image.asset('images/logo.png'),
+                  height: 150,
                 ),
-                decoration: InputDecoration(
-                  ///
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  hintText: 'Enter Your Email',
+              ),
+              /*Padding(
+                padding: const EdgeInsets.only(
+                  top: 50,
+                  left: 20,
+                  right: 20,
+                ),
+                child: TextField(
+                  cursorHeight: 20,
+                  onChanged: (value) {
+                    setState(() {
+                      email = value;
+                    });
+                  },
 
                   ///
-                  hintStyle: TextStyle(
+                  style: TextStyle(
+                    color: inputTextColor,
                     fontFamily: 'Ubuntu',
                     fontSize: 20,
-                    color: hintTextColor,
                   ),
-                  prefixIcon: Icon(
-                    Icons.email_outlined,
+                  decoration: InputDecoration(
+                    ///
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide(
+                        color: borderColor,
+                        width: 2,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide(
+                        color: borderColor,
+                        width: 2,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      borderSide: BorderSide(
+                        color: borderColor,
+                        width: 2,
+                      ),
+                    ),
+                    hintText: 'Enter Your Email',
 
                     ///
-                    color: iconColor,
-                  ),
-                  errorText: errorTextEmail,
-                  errorStyle: TextStyle(
-                    fontSize: 10,
-                    fontFamily: 'Ubuntu',
-                    //color: Colors.red,
-                  ),
-                ),
+                    hintStyle: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      fontSize: 20,
+                      color: hintTextColor,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.email_outlined,
 
-                ///
-                cursorColor: cursorColor,
-              ),
-            ),*/
-            RegInfo(
-              togglePassword: false,
-              isPassword: false,
-              onComplete: (value) {
-                setState(() {
-                  email = value;
-                });
-              },
-              topPadding: 50,
-              icon: Icon(
-                Icons.email_outlined,
-                color: iconColor,
-              ),
-              givenErrorText: errorTextEmail,
-              givenHintText: 'Enter Your Email',
-              inputType: TextInputType.emailAddress,
-            ),
-            RegInfo(
-              togglePassword: hidePass,
-              isPassword: true,
-              onComplete: (value) {
-                setState(() {
-                  password = value;
-                });
-              },
-              topPadding: 10,
-              icon: Icon(
-                Icons.password,
-                color: iconColor,
-              ),
-              givenErrorText: errorTextPassword,
-              givenHintText: 'Enter Your Password',
-              showHidePassword: () {
-                setState(() {
-                  hidePass = !hidePass;
-                });
-              },
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Forget Password?',
-                      style: TextStyle(
-                        color: lowerTextColor,
-                        fontFamily: 'Ubuntu',
-                        fontSize: 15,
-                      ),
+                      ///
+                      color: iconColor,
+                    ),
+                    errorText: errorTextEmail,
+                    errorStyle: TextStyle(
+                      fontSize: 10,
+                      fontFamily: 'Ubuntu',
+                      //color: Colors.red,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, RegistrationScreen.id);
-                    },
-                    child: Text(
-                      'New Here? Sign Up',
-                      style: TextStyle(
-                        color: lowerTextColor,
-                        fontFamily: 'Ubuntu',
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-              ),
-              child: AllButtons(
-                buttonText: 'Log In',
-                buttonColor: Colors.lightBlueAccent,
-                buttonTextColor: Colors.white,
-                onTap: () {
+
+                  ///
+                  cursorColor: cursorColor,
+                ),
+              ),*/
+              RegInfo(
+                togglePassword: false,
+                isPassword: false,
+                onComplete: (value) {
                   setState(() {
-                    loginCheck();
+                    _email = value;
+                  });
+                },
+                topPadding: 50,
+                icon: Icon(
+                  Icons.email_outlined,
+                  color: iconColor,
+                ),
+                givenErrorText: errorTextEmail,
+                givenHintText: 'Enter Your Email',
+                inputType: TextInputType.emailAddress,
+              ),
+              RegInfo(
+                togglePassword: hidePass,
+                isPassword: true,
+                onComplete: (value) {
+                  setState(() {
+                    _password = value;
+                  });
+                },
+                topPadding: 10,
+                icon: Icon(
+                  Icons.password,
+                  color: iconColor,
+                ),
+                givenErrorText: errorTextPassword,
+                givenHintText: 'Enter Your Password',
+                showHidePassword: () {
+                  setState(() {
+                    hidePass = !hidePass;
                   });
                 },
               ),
-            ),
-          ],
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        'Forget Password?',
+                        style: TextStyle(
+                          color: lowerTextColor,
+                          fontFamily: 'Ubuntu',
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, RegistrationScreen.id);
+                      },
+                      child: Text(
+                        'New Here? Sign Up',
+                        style: TextStyle(
+                          color: lowerTextColor,
+                          fontFamily: 'Ubuntu',
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 20,
+                  left: 20,
+                  right: 20,
+                ),
+                child: AllButtons(
+                  buttonText: 'Log In',
+                  buttonColor: Colors.lightBlueAccent,
+                  buttonTextColor: Colors.white,
+                  onTap: () {
+                    setState(() {
+                      loginCheck();
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

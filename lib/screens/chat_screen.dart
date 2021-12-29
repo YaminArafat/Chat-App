@@ -2,6 +2,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 class ChatScreen extends StatefulWidget {
   static String id = '/chat_screen';
@@ -12,6 +13,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _auth = FirebaseAuth.instance;
   var loggedInUser = null;
+  bool loading = false;
   void getCurrentUser() {
     try {
       final user = _auth.currentUser;
@@ -65,9 +67,15 @@ class _ChatScreenState extends State<ChatScreen> {
           PopupMenuButton(
             tooltip: 'Menu',
             onSelected: (value) {
+              setState(() {
+                loading = true;
+              });
               if (value == 1) {
                 // Navigator.pop(context);
                 _auth.signOut();
+                setState(() {
+                  loading = false;
+                });
                 Navigator.pop(context);
               } else {
                 ///
@@ -100,6 +108,16 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
         centerTitle: true,
+      ),
+      body: ModalProgressHUD(
+        inAsyncCall: loading,
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: 50,
+            left: 24,
+            right: 24,
+          ),
+        ),
       ),
     );
   }
