@@ -84,11 +84,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           setState(() {
             loading = true;
           });
-          final newUser = await _auth.createUserWithEmailAndPassword(
+          UserCredential user = await _auth.createUserWithEmailAndPassword(
               email: _email, password: _password);
-
+          var newUser = user.user;
           if (newUser != null) {
+            await newUser.updateDisplayName(_firstName + ' ' + _lastName);
+            await newUser.reload();
             _userInfo.collection("UserInfo").add({
+              'UserID': newUser.uid,
               'Email': _email,
               'First Name': _firstName,
               'Last Name': _lastName,

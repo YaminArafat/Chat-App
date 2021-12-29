@@ -3,6 +3,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:we_chat/constants.dart';
+import 'package:we_chat/screens/profile_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   static String id = '/chat_screen';
@@ -32,35 +34,32 @@ class _ChatScreenState extends State<ChatScreen> {
     getCurrentUser();
   }
 
-  List<PopupMenuEntry<Text>> popUpMenuItems = [
-    PopupMenuItem(
-      child: Text(
-        'Log Out',
-        style: TextStyle(
-          fontFamily: 'Ubuntu',
-        ),
-      ),
-    ),
-    PopupMenuItem(
-      child: Text(
-        'My Profile',
-        style: TextStyle(
-          fontFamily: 'Ubuntu',
-        ),
-      ),
-    ),
-  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        leading: Icon(
-          Icons.perm_identity,
-        ),
-        title: Text(
-          'We Chat',
-          style: TextStyle(
-            fontFamily: 'Ubuntu',
+        automaticallyImplyLeading: false,
+        title: TextButton(
+          onPressed: () {
+            Navigator.pushNamed(context, ProfileScreen.id);
+          },
+          child: Row(
+            children: [
+              Icon(
+                Icons.perm_identity,
+                color: Colors.white,
+                size: 20,
+              ),
+              Text(
+                loggedInUser.displayName,
+                style: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ),
         actions: [
@@ -77,8 +76,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   loading = false;
                 });
                 Navigator.pop(context);
-              } else {
-                ///
               }
             },
             color: Colors.blueAccent,
@@ -95,19 +92,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
               ),
-              PopupMenuItem(
-                value: 2,
-                child: Text(
-                  'My Profile',
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                  ),
-                ),
-              ),
             ],
           ),
         ],
-        centerTitle: true,
+        //centerTitle: true,
       ),
       body: ModalProgressHUD(
         inAsyncCall: loading,
