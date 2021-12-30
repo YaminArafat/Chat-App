@@ -52,14 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } catch (e) {
         print(e);
-        String errorLogin = e.toString().substring(30);
+        String errorLogin = e.toString(); //.substring(30);
         Alert(
           context: context,
           title: 'Log In Failed!!',
           desc: errorLogin,
           closeIcon: Icon(
             Icons.close,
-            color: Colors.white,
+            color: Colors.black,
           ),
           closeFunction: () {
             Navigator.pop(context);
@@ -89,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
           style: AlertStyle(
-            backgroundColor: Colors.blueAccent,
+            //backgroundColor: Colors.blueAccent,
             isButtonVisible: true,
             titleStyle: TextStyle(
               color: Colors.redAccent,
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
               //backgroundColor: Colors.orangeAccent,
             ),
             descStyle: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 20,
               fontFamily: 'Ubuntu',
             ),

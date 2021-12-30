@@ -56,8 +56,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               CircleAvatar(
-                backgroundColor: Colors.blue,
+                // backgroundColor: Colors.blue,
                 radius: 100,
+                backgroundImage: NetworkImage(userInfo.photoURL),
               ),
               SizedBox(
                 height: 20,

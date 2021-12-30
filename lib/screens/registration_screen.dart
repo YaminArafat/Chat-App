@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,6 +22,7 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  String? errorImg;
   String? errorFirstName;
   String? errorLastName;
   String? errorEmail;
@@ -42,9 +44,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _userInfo = FirebaseFirestore.instance;
   bool loading = false;
 
+  String? imgUrl;
+
   void regCheck() async {
+    if (img == null) {
+      errorImg = 'User Image Required.';
+    } else {
+      errorImg = null;
+    }
     if (_firstName.isEmpty) {
-      errorFirstName = 'Name field should not be empty';
+      errorFirstName = 'Name field should not be empty.';
     } else {
       errorFirstName = null;
     }
@@ -73,11 +82,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       }
     }
     if (_confirmPassword.isEmpty) {
-      errorConfirmPassword = 'Confirm your password';
+      errorConfirmPassword = 'Confirm your password.';
     } else {
       if (_confirmPassword != _password) {
         errorConfirmPassword = 'Password did not match';
-      } else if (errorFirstName == null &&
+      } else if (errorImg == null &&
+          errorFirstName == null &&
           errorLastName == null &&
           errorEmail == null &&
           errorMobile == null &&
@@ -92,6 +102,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           var newUser = user.user;
           if (newUser != null) {
             await newUser.updateDisplayName(_firstName + ' ' + _lastName);
+            Reference imgReference = firebaseStorage.ref().child('images');
+            UploadTask uploadTask = imgReference.putFile(imgFile);
+            TaskSnapshot taskSnapshot = await uploadTask;
+            String url = await taskSnapshot.ref.getDownloadURL();
+            /*uploadTask
+                .then((result) => url = result.ref.getDownloadURL() as String?);*/
+            if (url != null) {
+              setState(() {
+                imgUrl = url;
+              });
+            }
+            /*uploadTask.whenComplete(() async {
+              String? url = await imgReference.getDownloadURL();
+              if (url != null) {
+                setState(() {
+                  imgUrl = url;
+                });
+              }
+            }).catchError((e) {
+              print(e);
+            });*/
+            print(imgUrl);
+            //Uri imgURL =
+            await newUser.updatePhotoURL(imgUrl);
             await newUser.reload();
             _userInfo.collection("UserInfo").add({
               'UserID': newUser.uid,
@@ -108,14 +142,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           }
         } catch (e) {
           print(e);
-          String errorLogin = e.toString().substring(30);
+          String errorReg = e.toString(); //.substring(30);
           Alert(
             context: context,
             title: 'Registration Unsuccessful!!',
-            desc: errorLogin,
+            desc: errorReg,
             closeIcon: Icon(
               Icons.close,
-              color: Colors.white,
+              color: Colors.black,
             ),
             closeFunction: () {
               Navigator.pop(context);
@@ -145,7 +179,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ],
             style: AlertStyle(
-              backgroundColor: Colors.blueAccent,
+              // backgroundColor: Colors.blueAccent,
               isButtonVisible: true,
               titleStyle: TextStyle(
                 color: Colors.redAccent,
@@ -156,7 +190,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 //backgroundColor: Colors.orangeAccent,
               ),
               descStyle: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontSize: 20,
                 fontFamily: 'Ubuntu',
               ),
@@ -170,12 +204,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   var img = null;
+  var imgFile = null;
+  FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   void galleryPicker() async {
     try {
       final pickedImg =
           await ImagePicker().pickImage(source: ImageSource.gallery);
       if (pickedImg != null) {
         setState(() {
+          imgFile = File(pickedImg.path);
           img = Image.file(
             File(pickedImg.path),
           ).image;
@@ -193,6 +230,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           await ImagePicker().pickImage(source: ImageSource.camera);
       if (pickedImg != null) {
         setState(() {
+          imgFile = File(pickedImg.path);
           img = Image.file(
             File(pickedImg.path),
           ).image;
@@ -328,6 +366,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 backgroundColor: (img == null) ? Colors.blueAccent : null,
                 radius: 100,
                 backgroundImage: (img == null) ? null : img,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 5.0),
+                child: Center(
+                  child: Text(
+                    (errorImg == null) ? '' : errorImg!,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontFamily: 'Ubuntu',
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
               ),
               RegInfo(
                 icon: Icon(
