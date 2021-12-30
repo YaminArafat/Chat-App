@@ -112,6 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  ///TODO: Registration Successful message;
   @override
   Widget build(BuildContext context) {
     return Scaffold(

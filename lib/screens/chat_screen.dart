@@ -46,10 +46,15 @@ class _ChatScreenState extends State<ChatScreen> {
           },
           child: Row(
             children: [
-              Icon(
-                Icons.perm_identity,
-                color: Colors.white,
-                size: 20,
+              Hero(
+                tag: 'profilePic',
+                child: CircleAvatar(
+                  radius: 10,
+                  backgroundImage: NetworkImage(loggedInUser.photoURL),
+                ),
+              ),
+              SizedBox(
+                width: 5,
               ),
               Text(
                 loggedInUser.displayName,
@@ -64,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           PopupMenuButton(
+            elevation: 10,
             tooltip: 'Menu',
             onSelected: (value) {
               setState(() {
@@ -78,10 +84,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 Navigator.pop(context);
               }
             },
-            color: Colors.blueAccent,
+            color: Colors.orangeAccent,
             shape: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(width: 2, color: Colors.blue)),
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(width: 1, color: Colors.blueGrey),
+            ),
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 1,
@@ -89,6 +96,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   'Log Out',
                   style: TextStyle(
                     fontFamily: 'Ubuntu',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
                   ),
                 ),
               ),

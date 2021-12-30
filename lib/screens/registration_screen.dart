@@ -102,7 +102,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           var newUser = user.user;
           if (newUser != null) {
             await newUser.updateDisplayName(_firstName + ' ' + _lastName);
-            Reference imgReference = firebaseStorage.ref().child('images');
+            Reference imgReference =
+                firebaseStorage.ref().child('UserImages/$_email');
             UploadTask uploadTask = imgReference.putFile(imgFile);
             TaskSnapshot taskSnapshot = await uploadTask;
             String url = await taskSnapshot.ref.getDownloadURL();
@@ -126,15 +127,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             print(imgUrl);
             //Uri imgURL =
             await newUser.updatePhotoURL(imgUrl);
-            await newUser.reload();
-            _userInfo.collection("UserInfo").add({
-              'UserID': newUser.uid,
-              'Email': _email,
-              'First Name': _firstName,
-              'Last Name': _lastName,
-              'Mobile No': _mobile,
-              'Password': _password,
-            });
+
+            User? refreshedUser = await refreshUser(newUser);
+            if (refreshedUser != null) {
+              setState(() {
+                newUser = refreshedUser;
+              });
+            }
+            // await newUser.reload();
+            if (newUser != null) {
+              _userInfo.collection("UserInfo").add({
+                'UserID': newUser!.uid,
+                'Image': newUser!.photoURL,
+                'Email': _email,
+                'First Name': _firstName,
+                'Last Name': _lastName,
+                'Mobile No': _mobile,
+                'Password': _password,
+              });
+            }
             Navigator.pushNamed(context, LoginScreen.id);
             setState(() {
               loading = false;
@@ -285,13 +296,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 onPressed: () {
                                   Navigator.pop(context);
                                 },
-                                child: Text(
-                                  'Cancel',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontFamily: "Ubuntu",
-                                    color: Colors.white,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Cancel',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontFamily: "Ubuntu",
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -314,27 +329,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Icon(
-                                      Icons.account_box_outlined,
-                                      color: Colors.green,
-                                      size: 30,
-                                    ),
                                     ImgPickOp(
+                                      icon: Icons.account_box_outlined,
                                       color: Colors.green,
                                       text: 'Gallery',
                                       onPress: () {
                                         galleryPicker();
                                       },
                                     ),
-                                    VerticalDivider(
-                                      color: Colors.black,
-                                    ),
-                                    Icon(
-                                      Icons.camera_alt_outlined,
-                                      color: Colors.blueGrey,
-                                      size: 30,
-                                    ),
                                     ImgPickOp(
+                                      icon: Icons.camera_alt_outlined,
                                       color: Colors.blueGrey,
                                       text: 'Camera',
                                       onPress: () {
@@ -355,7 +359,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           'Add Image',
                           style: TextStyle(
                             fontFamily: 'Ubuntu',
-                            color: Colors.white,
+                            color: imgPickTextColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                             letterSpacing: 1.5,
@@ -652,24 +656,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 }
 
 class ImgPickOp extends StatelessWidget {
+  final IconData icon;
   final Color color;
   final String text;
   final Function() onPress;
 
-  ImgPickOp({required this.color, required this.text, required this.onPress});
+  ImgPickOp(
+      {required this.icon,
+      required this.color,
+      required this.text,
+      required this.onPress});
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPress,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: 'Ubuntu',
-          color: color,
-          fontSize: 20,
-          letterSpacing: 1.5,
-        ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 30,
+          ),
+          Text(
+            text,
+            style: TextStyle(
+              fontFamily: 'Ubuntu',
+              color: color,
+              fontSize: 20,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }

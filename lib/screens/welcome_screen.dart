@@ -65,6 +65,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   iconColor = Colors.white60;
                   borderColor = Colors.white;
                   cursorColor = Colors.white;
+                  imgPickTextColor = Colors.black;
                   // lowerTextColor = Colors.white;
 
                   /*activeSwitchColor = Colors.white;
@@ -77,6 +78,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   iconColor = Colors.black45;
                   borderColor = Colors.black;
                   cursorColor = Colors.black;
+                  imgPickTextColor = Colors.white;
                   // lowerTextColor = Colors.blue;
                   /*activeSwitchColor = Colors.blue;
                   activeSwitchTrackColor = Colors.lightBlueAccent;
