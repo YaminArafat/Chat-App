@@ -44,7 +44,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       verificationCompleted: (PhoneAuthCredential phoneAuthCredential) async {
         Navigator.pop(context);
         print('in');
-        await _auth.signInWithCredential(phoneAuthCredential);
+        //await _auth.signInWithCredential(phoneAuthCredential);
+        await linkPhoneWithEmail(phoneAuthCredential);
         setState(() {
           _phoneAuthCredential = phoneAuthCredential;
           verifiedPhone = true;
@@ -84,7 +85,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       PhoneAuthProvider.credential(
                           verificationId: verificationId,
                           smsCode: verifySmsCode);
-                  await _auth.signInWithCredential(phoneAuthCredential);
+                  // await _auth.signInWithCredential(phoneAuthCredential);
+                  await linkPhoneWithEmail(phoneAuthCredential);
                   setState(() {
                     _phoneAuthCredential = phoneAuthCredential;
                     isVerified = true;
@@ -145,12 +147,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> linkPhoneWithEmail() async {
+  Future<void> linkPhoneWithEmail(
+      PhoneAuthCredential phoneAuthCredential) async {
     final AuthCredential authCredential = EmailAuthProvider.credential(
         email: userInfo.email, password: _password);
     final UserCredential userCredential =
         await _auth.signInWithCredential(authCredential);
-    await userCredential.user!.linkWithCredential(_phoneAuthCredential);
+    await userCredential.user!.linkWithCredential(phoneAuthCredential);
+    // await userCredential.user!.linkWithPhoneNumber(_mobile);
   }
 
   Future<String> getPhoneNum() async {
@@ -512,8 +516,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     onPressed: () {
                       Navigator.pop(context);
-                      _auth.signOut();
                       Navigator.pop(context);
+                      _auth.signOut();
                     }),
               ),
             ],
