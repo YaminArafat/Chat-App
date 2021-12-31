@@ -1,9 +1,11 @@
 // ignore_for_file: prefer_typing_uninitialized_variables, prefer_const_constructors, use_key_in_widget_constructors, avoid_print, prefer_const_literals_to_create_immutables
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:we_chat/components/all_textfields.dart';
 import 'package:we_chat/constants.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -24,16 +26,159 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final currentUser = _auth.currentUser;
       if (currentUser != null) {
         userInfo = currentUser;
+        getPhoneNum();
       }
     } catch (e) {
       print(e);
     }
   }
 
+  late PhoneAuthCredential _phoneAuthCredential;
+  bool isVerified = false;
+  String? codeError;
+  Future<void> phoneVerification() async {
+    late String verifySmsCode;
+    print(_mobile);
+    await _auth.verifyPhoneNumber(
+      phoneNumber: _mobile,
+      verificationCompleted: (PhoneAuthCredential phoneAuthCredential) async {
+        Navigator.pop(context);
+        print('in');
+        await _auth.signInWithCredential(phoneAuthCredential);
+        setState(() {
+          _phoneAuthCredential = phoneAuthCredential;
+          verifiedPhone = true;
+        });
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        print(e);
+        print('Aalif');
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        Alert(
+          context: context,
+          title: 'Verification OTP Sent',
+          desc:
+              'Check your messages & write the OTP code here.\nThen click the refresh button to get the verification icon',
+          closeIcon: Icon(
+            Icons.close,
+            color: Colors.black,
+          ),
+
+          ///
+          content: RegInfo(
+            icon: Icon(Icons.security),
+            givenHintText: 'Enter Code Here',
+            givenErrorText: codeError,
+            topPadding: 10,
+            isPassword: false,
+            inputType: TextInputType.number,
+            togglePassword: false,
+            onComplete: (value) async {
+              if (value.isNotEmpty) {
+                setState(() {
+                  verifySmsCode = value;
+                });
+                try {
+                  PhoneAuthCredential phoneAuthCredential =
+                      PhoneAuthProvider.credential(
+                          verificationId: verificationId,
+                          smsCode: verifySmsCode);
+                  await _auth.signInWithCredential(phoneAuthCredential);
+                  setState(() {
+                    _phoneAuthCredential = phoneAuthCredential;
+                    isVerified = true;
+                    verifiedPhone = true;
+                  });
+                } catch (e) {
+                  print(e);
+                  print('Aalif 2');
+                }
+              }
+            },
+          ),
+          buttons: [
+            DialogButton(
+              color: Colors.green,
+              width: 100,
+              height: 30,
+              onPressed: () {
+                if (isVerified) {
+                  setState(() {
+                    codeError = null;
+                  });
+                  Navigator.pop(context);
+                } else {
+                  setState(() {
+                    codeError = 'Code Required for Verification.';
+                  });
+                }
+              },
+              child: Text(
+                'Done',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "Ubuntu",
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+          style: AlertStyle(
+            titleStyle: TextStyle(
+              color: Colors.blue,
+              fontFamily: 'Ubuntu',
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+              //backgroundColor: Colors.orangeAccent,
+            ),
+            descStyle: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontFamily: 'Ubuntu',
+            ),
+          ),
+        ).show();
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {},
+    );
+  }
+
+  Future<void> linkPhoneWithEmail() async {
+    final AuthCredential authCredential = EmailAuthProvider.credential(
+        email: userInfo.email, password: _password);
+    final UserCredential userCredential =
+        await _auth.signInWithCredential(authCredential);
+    await userCredential.user!.linkWithCredential(_phoneAuthCredential);
+  }
+
+  Future<String> getPhoneNum() async {
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+    var users = await firebaseFirestore.collection('UserInfo').get();
+    String? phoneNum, password;
+    for (var user in users.docs) {
+      if (user.data()['UserID'] == userInfo.uid) {
+        phoneNum = user.data()['Mobile No'];
+        password = user.data()['Password'];
+        setState(() {
+          _mobile = phoneNum!;
+          _password = password!;
+        });
+        break;
+        // print(user.data()['Mobile No']);
+      }
+    }
+    phoneNum ??= 'Mobile number not available';
+    return phoneNum;
+  }
+
   final _auth = FirebaseAuth.instance;
   var userInfo;
 
-  bool verifyPressed = false;
+  bool verifiedPhone = false;
+  late String _mobile;
+  late String _password;
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Icon(
                     Icons.email,
-                    color: Colors.redAccent,
+                    color: Colors.red[400],
                     size: 20,
                   ),
                   SizedBox(
@@ -111,8 +256,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    userInfo.emailVerified ? Icons.check_circle : Icons.cancel,
-                    color: userInfo.emailVerified ? Colors.green : Colors.red,
+                    userInfo.emailVerified
+                        ? Icons.verified_user_rounded
+                        : Icons.cancel,
+                    color: userInfo.emailVerified
+                        ? Colors.greenAccent
+                        : Colors.red,
                     size: 17,
                   ),
                   SizedBox(
@@ -124,7 +273,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         : 'E-mail not verified',
                     style: TextStyle(
                       fontFamily: 'Ubuntu',
-                      color: userInfo.emailVerified ? Colors.green : Colors.red,
+                      color: userInfo.emailVerified
+                          ? Colors.greenAccent
+                          : Colors.red,
                       fontSize: 15,
                     ),
                   ),
@@ -203,6 +354,127 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                   ),
                 ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Icon(
+                    Icons.phone,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  FutureBuilder<String>(
+                      future: getPhoneNum(),
+                      initialData: 'Loading...',
+                      builder: (BuildContext context,
+                          AsyncSnapshot<String> snapshot) {
+                        if (snapshot.hasData && snapshot.data != 'Loading...') {
+                          return Text(
+                            '${snapshot.data}',
+                            style: TextStyle(
+                              fontFamily: 'Ubuntu',
+                              color: Colors.blue,
+                              fontSize: 20,
+                            ),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text(
+                            '${snapshot.error}',
+                            style: TextStyle(
+                              fontFamily: 'Ubuntu',
+                              color: Colors.red,
+                              fontSize: 20,
+                            ),
+                          );
+                        } else {
+                          return Row(
+                            children: [
+                              Text(
+                                '${snapshot.data}',
+                                style: TextStyle(
+                                  fontFamily: 'Ubuntu',
+                                  color: Colors.blue,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                                width: 10,
+                                child: CircularProgressIndicator.adaptive(),
+                              ),
+                            ],
+                          );
+                        }
+                      }),
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    verifiedPhone ? Icons.verified_user_rounded : Icons.cancel,
+                    color: verifiedPhone ? Colors.greenAccent : Colors.red,
+                    size: 17,
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    verifiedPhone ? 'Number verified' : 'Number not verified',
+                    style: TextStyle(
+                      fontFamily: 'Ubuntu',
+                      color: verifiedPhone ? Colors.greenAccent : Colors.red,
+                      fontSize: 15,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(0.0),
+                    child: (verifiedPhone)
+                        ? null
+                        : Container(
+                            height: 30,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.green,
+                            ),
+                            child: TextButton(
+                                // color: Colors.green,
+                                child: Text(
+                                  'Verify Now',
+                                  style: TextStyle(
+                                    fontFamily: 'Ubuntu',
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  if (!verifiedPhone) {
+                                    await phoneVerification();
+                                    /*setState(() {
+                                      verifiedPhone = true;
+                                    });*/
+                                  }
+                                }),
+                          ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 10,
               ),
               IconButton(
                 onPressed: () async {

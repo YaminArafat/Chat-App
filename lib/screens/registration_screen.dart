@@ -142,7 +142,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 'Email': _email,
                 'First Name': _firstName,
                 'Last Name': _lastName,
-                'Mobile No': _mobile,
+                'Mobile No': '+88' + _mobile,
                 'Password': _password,
               });
             }
@@ -506,109 +506,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   });
                 },
               ),
-              /* Padding(
-                padding: const EdgeInsets.only(
-                  left: 24.0,
-                  right: 24,
-                  top: 4,
-                ),
-                child: MaterialButton(
-                  shape: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  onPressed: () {
-                    Alert(
-                      context: context,
-                      title: 'Choose your option',
-                      closeIcon: Icon(
-                        Icons.close,
-                        color: Colors.black,
-                      ),
-                      buttons: [
-                        DialogButton(
-                          color: Colors.blueAccent,
-                          width: 100,
-                          height: 30,
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontFamily: "Ubuntu",
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                      style: AlertStyle(
-                        titleStyle: TextStyle(
-                          fontFamily: 'Ubuntu',
-                          fontSize: 20,
-                        ),
-                      ),
-                      content: Column(
-                        children: [
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Divider(
-                            color: Colors.black,
-                            thickness: 2,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Icon(
-                                Icons.account_box_outlined,
-                                color: Colors.green,
-                                size: 30,
-                              ),
-                              ImgPickOp(
-                                color: Colors.green,
-                                text: 'Gallery',
-                                onPress: () {
-                                  galleryPicker();
-                                },
-                              ),
-                              VerticalDivider(
-                                color: Colors.black,
-                              ),
-                              Icon(
-                                Icons.camera_alt_outlined,
-                                color: Colors.blueGrey,
-                                size: 30,
-                              ),
-                              ImgPickOp(
-                                color: Colors.blueGrey,
-                                text: 'Camera',
-                                onPress: () {
-                                  cameraPicker();
-                                },
-                              )
-                            ],
-                          ),
-                          Divider(
-                            color: Colors.black,
-                            thickness: 2,
-                          ),
-                        ],
-                      ),
-                    ).show();
-                  },
-                  color: Colors.lightBlue,
-                  child: Text(
-                    'Add Image',
-                    style: TextStyle(
-                      fontFamily: 'Ubuntu',
-                      color: Colors.white,
-                      fontSize: 15,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ),
-              ),*/
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Row(

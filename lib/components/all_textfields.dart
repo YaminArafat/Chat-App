@@ -50,7 +50,14 @@ class RegInfo extends StatelessWidget {
                   ),
                   onPressed: showHidePassword,
                 )
-              : null,
+              : /*inputType == TextInputType.phone?IconButton(
+            icon: Icon(
+              Icons.verified_outlined,
+              color: Colors.green,
+            ),
+            onPressed: showHidePassword,
+          ):*/
+              null,
 
           ///
           enabledBorder: OutlineInputBorder(

@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/profile_screen.dart';
 
@@ -25,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } catch (e) {
       print(e);
+      logInError(context, e).show();
     }
   }
 
@@ -42,14 +44,19 @@ class _ChatScreenState extends State<ChatScreen> {
         automaticallyImplyLeading: false,
         title: TextButton(
           onPressed: () {
-            Navigator.pushNamed(context, ProfileScreen.id);
+            try {
+              Navigator.pushNamed(context, ProfileScreen.id);
+            } catch (e) {
+              print(e);
+              logInError(context, e).show();
+            }
           },
           child: Row(
             children: [
               Hero(
                 tag: 'profilePic',
                 child: CircleAvatar(
-                  radius: 10,
+                  radius: 15,
                   backgroundImage: NetworkImage(loggedInUser.photoURL),
                 ),
               ),
@@ -114,6 +121,56 @@ class _ChatScreenState extends State<ChatScreen> {
             left: 24,
             right: 24,
           ),
+        ),
+      ),
+    );
+  }
+
+  Alert logInError(BuildContext context, Object e) {
+    return Alert(
+      context: context,
+      title: 'Something Went Wrong',
+      desc: e.toString(),
+      closeIcon: Icon(
+        Icons.close,
+        color: Colors.black,
+      ),
+      closeFunction: () {
+        Navigator.pop(context);
+        Navigator.pop(context);
+      },
+      buttons: [
+        DialogButton(
+          color: Colors.green,
+          width: 200,
+          height: 30,
+          onPressed: () {
+            Navigator.pop(context);
+            Navigator.pop(context);
+          },
+          child: Text(
+            'Log Out & Try Again',
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: "Ubuntu",
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+      style: AlertStyle(
+        titleStyle: TextStyle(
+          color: Colors.redAccent,
+          fontFamily: 'Ubuntu',
+          fontSize: 30,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.5,
+          //backgroundColor: Colors.orangeAccent,
+        ),
+        descStyle: TextStyle(
+          color: Colors.black,
+          fontSize: 20,
+          fontFamily: 'Ubuntu',
         ),
       ),
     );
