@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-import 'package:we_chat/components/all_textfields.dart';
 import 'package:we_chat/constants.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -35,7 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   late PhoneAuthCredential _phoneAuthCredential;
   bool isVerified = false;
-  String? codeError;
   Future<void> phoneVerification() async {
     late String verifySmsCode;
     print(_mobile);
@@ -45,7 +43,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.pop(context);
         print('in');
         //await _auth.signInWithCredential(phoneAuthCredential);
-        await linkPhoneWithEmail(phoneAuthCredential);
+        // await linkPhoneWithEmail(phoneAuthCredential);
+        await userInfo.linkWithCredential(phoneAuthCredential);
         setState(() {
           _phoneAuthCredential = phoneAuthCredential;
           verifiedPhone = true;
@@ -67,37 +66,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
 
           ///
-          content: RegInfo(
-            icon: Icon(Icons.security),
-            givenHintText: 'Enter Code Here',
-            givenErrorText: codeError,
-            topPadding: 10,
-            isPassword: false,
-            inputType: TextInputType.number,
-            togglePassword: false,
-            onComplete: (value) async {
-              if (value.isNotEmpty) {
-                setState(() {
-                  verifySmsCode = value;
-                });
-                try {
-                  PhoneAuthCredential phoneAuthCredential =
-                      PhoneAuthProvider.credential(
-                          verificationId: verificationId,
-                          smsCode: verifySmsCode);
-                  // await _auth.signInWithCredential(phoneAuthCredential);
-                  await linkPhoneWithEmail(phoneAuthCredential);
+          content: Padding(
+            padding: const EdgeInsets.only(
+              top: 10,
+              left: 10,
+              right: 10,
+            ),
+            child: TextField(
+              keyboardType: TextInputType.number,
+              onChanged: (value) async {
+                if (value.isNotEmpty) {
                   setState(() {
-                    _phoneAuthCredential = phoneAuthCredential;
-                    isVerified = true;
-                    verifiedPhone = true;
+                    verifySmsCode = value;
                   });
-                } catch (e) {
-                  print(e);
-                  print('Aalif 2');
+                  try {
+                    PhoneAuthCredential phoneAuthCredential =
+                        PhoneAuthProvider.credential(
+                            verificationId: verificationId,
+                            smsCode: verifySmsCode);
+                    // await _auth.signInWithCredential(phoneAuthCredential);
+                    await userInfo.linkWithCredential(phoneAuthCredential);
+                    // await linkPhoneWithEmail(phoneAuthCredential);
+                    setState(() {
+                      _phoneAuthCredential = phoneAuthCredential;
+                      isVerified = true;
+                      verifiedPhone = true;
+                    });
+                  } catch (e) {
+                    print(e);
+                    print('Aalif 2');
+                  }
                 }
-              }
-            },
+              },
+              style: TextStyle(
+                color: inputTextColor,
+                fontFamily: 'Ubuntu',
+                fontSize: 20,
+              ),
+              cursorHeight: 20,
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(
+                    color: borderColor,
+                    width: 2,
+                  ),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(
+                    color: borderColor,
+                    width: 2,
+                  ),
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(
+                    color: borderColor,
+                    width: 2,
+                  ),
+                ),
+                prefixIcon: Icon(Icons.security),
+                hintText: 'Enter OTP Code Here',
+                hintStyle: TextStyle(
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                  color: hintTextColor,
+                ),
+              ),
+              cursorColor: cursorColor,
+            ),
           ),
           buttons: [
             DialogButton(
@@ -106,14 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 30,
               onPressed: () {
                 if (isVerified) {
-                  setState(() {
-                    codeError = null;
-                  });
                   Navigator.pop(context);
-                } else {
-                  setState(() {
-                    codeError = 'Code Required for Verification.';
-                  });
                 }
               },
               child: Text(
@@ -143,7 +174,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ).show();
       },
-      codeAutoRetrievalTimeout: (String verificationId) {},
+      codeAutoRetrievalTimeout: (String verificationId) {
+        //Navigator.pop(context);
+        Alert(
+          context: context,
+          title: 'Timed Out!!',
+          desc: 'Timed out waiting for SMS.',
+          closeIcon: Icon(
+            Icons.close,
+            color: Colors.black,
+          ),
+          buttons: [
+            DialogButton(
+              color: Colors.green,
+              width: 100,
+              height: 30,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Try Again',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "Ubuntu",
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+          style: AlertStyle(
+            titleStyle: TextStyle(
+              color: Colors.redAccent,
+              fontFamily: 'Ubuntu',
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              //backgroundColor: Colors.orangeAccent,
+            ),
+            descStyle: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontFamily: 'Ubuntu',
+            ),
+          ),
+        ).show();
+      },
     );
   }
 
@@ -153,7 +228,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         email: userInfo.email, password: _password);
     final UserCredential userCredential =
         await _auth.signInWithCredential(authCredential);
-    await userCredential.user!.linkWithCredential(phoneAuthCredential);
+    await userInfo.linkWithCredential(phoneAuthCredential);
+    // await userCredential.user!.linkWithCredential(phoneAuthCredential);
     // await userCredential.user!.linkWithPhoneNumber(_mobile);
   }
 
