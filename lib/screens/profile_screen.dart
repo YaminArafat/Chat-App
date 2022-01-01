@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
 
@@ -22,14 +23,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   bool imgLoading = true;
+  bool loading = false;
   void getCurrentUser() async {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser != null) {
         userInfo = currentUser;
         await getPhoneNum();
-        setState(() {
-          imgLoading = false;
+        Future.delayed(Duration(milliseconds: 500), () {
+          setState(() {
+            imgLoading = false;
+          });
         });
       }
     } catch (e) {
@@ -39,8 +43,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /*late PhoneAuthCredential _phoneAuthCredential;*/
   bool isVerified = false;
+  late String verifySmsCode;
   Future<void> phoneVerification() async {
-    late String verifySmsCode;
     print(_mobile);
     await _auth.verifyPhoneNumber(
       phoneNumber: _mobile,
@@ -79,27 +83,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: TextField(
               keyboardType: TextInputType.number,
-              onChanged: (value) async {
+              onChanged: (value) {
                 if (value.isNotEmpty) {
                   setState(() {
                     verifySmsCode = value;
                   });
-                  try {
-                    PhoneAuthCredential phoneAuthCredential =
-                        PhoneAuthProvider.credential(
-                            verificationId: verificationId,
-                            smsCode: verifySmsCode);
-                    // await _auth.signInWithCredential(phoneAuthCredential);
-                    await userInfo.linkWithCredential(phoneAuthCredential);
-                    // await linkPhoneWithEmail(phoneAuthCredential);
-                    setState(() {
-                      //_phoneAuthCredential = phoneAuthCredential;
-                      isVerified = true;
-                    });
-                  } catch (e) {
-                    print(e);
-                    print('Aalif 2');
-                  }
                 }
               },
               style: TextStyle(
@@ -147,6 +135,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: 100,
               height: 30,
               onPressed: () {
+                try {
+                  /*PhoneAuthCredential phoneAuthCredential =
+                  PhoneAuthProvider.credential(
+                      verificationId: verificationId,
+                      smsCode: verifySmsCode);
+                  // await _auth.signInWithCredential(phoneAuthCredential);
+                  await userInfo.linkWithCredential(phoneAuthCredential);
+                  // await linkPhoneWithEmail(phoneAuthCredential);*/
+                  setState(() {
+                    isVerified = true;
+                  });
+                } catch (e) {
+                  print(e);
+                  print('Aalif 2');
+                }
                 if (isVerified) {
                   Navigator.pop(context);
                 }
@@ -277,354 +280,366 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          top: 50,
-          left: 24,
-          right: 24,
-        ),
-        child: Center(
-          child: Column(
-            children: [
-              Hero(
-                tag: 'profilePic',
-                child: imgLoading
-                    ? SizedBox(
-                        height: 50,
-                        width: 50,
-                        child: CircularProgressIndicator.adaptive(
-                            // backgroundColor: Colors.white,
-                            ),
-                      )
-                    : CircleAvatar(
-                        // backgroundColor: Colors.blue,
-                        radius: 100,
-                        backgroundImage: NetworkImage(userInfo.photoURL),
-                      ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                userInfo.displayName,
-                style: TextStyle(
-                  fontFamily: 'Ubuntu',
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orangeAccent,
-                  fontSize: 40,
+      body: ModalProgressHUD(
+        inAsyncCall: loading,
+        child: Padding(
+          padding: const EdgeInsets.only(
+            top: 50,
+            left: 24,
+            right: 24,
+          ),
+          child: Center(
+            child: Column(
+              children: [
+                Hero(
+                  tag: 'profilePic',
+                  child: imgLoading
+                      ? SizedBox(
+                          height: 50,
+                          width: 50,
+                          child: CircularProgressIndicator.adaptive(
+                              // backgroundColor: Colors.white,
+                              ),
+                        )
+                      : CircleAvatar(
+                          // backgroundColor: Colors.blue,
+                          radius: 100,
+                          backgroundImage: NetworkImage(userInfo.photoURL),
+                        ),
                 ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Icon(
-                    Icons.email,
-                    color: Colors.red[400],
-                    size: 20,
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  userInfo.displayName,
+                  style: TextStyle(
+                    fontFamily: 'Ubuntu',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orangeAccent,
+                    fontSize: 40,
                   ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    userInfo.email,
-                    style: TextStyle(
-                      fontFamily: 'Ubuntu',
-                      color: Colors.blue,
-                      fontSize: 22,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Icon(
+                      Icons.email,
+                      color: Colors.red[400],
+                      size: 20,
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    userInfo.emailVerified
-                        ? Icons.verified_user_rounded
-                        : Icons.cancel,
-                    color: userInfo.emailVerified
-                        ? Colors.greenAccent
-                        : Colors.red,
-                    size: 17,
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    userInfo.emailVerified
-                        ? 'E-mail verified'
-                        : 'E-mail not verified',
-                    style: TextStyle(
-                      fontFamily: 'Ubuntu',
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      userInfo.email,
+                      style: TextStyle(
+                        fontFamily: 'Ubuntu',
+                        color: Colors.blue,
+                        fontSize: 22,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      userInfo.emailVerified
+                          ? Icons.verified_user_rounded
+                          : Icons.cancel,
                       color: userInfo.emailVerified
                           ? Colors.greenAccent
                           : Colors.red,
-                      fontSize: 15,
+                      size: 17,
                     ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(0.0),
-                    child: (userInfo.emailVerified)
-                        ? null
-                        : Container(
-                            height: 30,
-                            width: 100,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.green,
-                            ),
-                            child: TextButton(
-                                // color: Colors.green,
-                                child: Text(
-                                  'Verify Now',
-                                  style: TextStyle(
-                                    fontFamily: 'Ubuntu',
-                                    color: Colors.white,
-                                    fontSize: 10,
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      userInfo.emailVerified
+                          ? 'E-mail verified'
+                          : 'E-mail not verified',
+                      style: TextStyle(
+                        fontFamily: 'Ubuntu',
+                        color: userInfo.emailVerified
+                            ? Colors.greenAccent
+                            : Colors.red,
+                        fontSize: 15,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(0.0),
+                      child: (userInfo.emailVerified)
+                          ? null
+                          : Container(
+                              height: 30,
+                              width: 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.green,
+                              ),
+                              child: TextButton(
+                                  // color: Colors.green,
+                                  child: Text(
+                                    'Verify Now',
+                                    style: TextStyle(
+                                      fontFamily: 'Ubuntu',
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
                                   ),
-                                ),
-                                onPressed: () async {
-                                  if (!userInfo.emailVerified) {
-                                    await userInfo.sendEmailVerification();
-                                    Alert(
-                                      context: context,
-                                      title: 'Verification E-mail Sent',
-                                      desc:
-                                          'Check your e-mail & Follow the given link to verify your e-mail.\nThen click the refresh button to get the verification icon',
-                                      closeIcon: Icon(
-                                        Icons.close,
-                                        color: Colors.black,
-                                      ),
-                                      buttons: [
-                                        DialogButton(
-                                          color: Colors.green,
-                                          width: 100,
-                                          height: 30,
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: Text(
-                                            'Done',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontFamily: "Ubuntu",
-                                              color: Colors.white,
+                                  onPressed: () async {
+                                    if (!userInfo.emailVerified) {
+                                      await userInfo.sendEmailVerification();
+                                      Alert(
+                                        context: context,
+                                        title: 'Verification E-mail Sent',
+                                        desc:
+                                            'Check your e-mail & Follow the given link to verify your e-mail.\nThen click the refresh button to get the verification icon',
+                                        closeIcon: Icon(
+                                          Icons.close,
+                                          color: Colors.black,
+                                        ),
+                                        buttons: [
+                                          DialogButton(
+                                            color: Colors.green,
+                                            width: 100,
+                                            height: 30,
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text(
+                                              'Done',
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontFamily: "Ubuntu",
+                                                color: Colors.white,
+                                              ),
                                             ),
                                           ),
+                                        ],
+                                        style: AlertStyle(
+                                          titleStyle: TextStyle(
+                                            color: Colors.blue,
+                                            fontFamily: 'Ubuntu',
+                                            fontSize: 30,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1,
+                                            //backgroundColor: Colors.orangeAccent,
+                                          ),
+                                          descStyle: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 20,
+                                            fontFamily: 'Ubuntu',
+                                          ),
                                         ),
-                                      ],
-                                      style: AlertStyle(
-                                        titleStyle: TextStyle(
-                                          color: Colors.blue,
-                                          fontFamily: 'Ubuntu',
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1,
-                                          //backgroundColor: Colors.orangeAccent,
-                                        ),
-                                        descStyle: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                          fontFamily: 'Ubuntu',
-                                        ),
-                                      ),
-                                    ).show();
-                                  }
-                                }),
-                          ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Icon(
-                    Icons.phone,
-                    color: Colors.green,
-                    size: 20,
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  SizedBox(
-                    child: userInfo.phoneNumber != null
-                        ? Text(
-                            userInfo.phoneNumber,
-                            style: TextStyle(
-                              fontFamily: 'Ubuntu',
-                              color: Colors.blue,
-                              fontSize: 20,
+                                      ).show();
+                                    }
+                                  }),
                             ),
-                          )
-                        : FutureBuilder<String>(
-                            future: getPhoneNum(),
-                            initialData: 'Loading...',
-                            builder: (BuildContext context,
-                                AsyncSnapshot<String> snapshot) {
-                              if (snapshot.hasData &&
-                                  snapshot.data != 'Loading...') {
-                                return Text(
-                                  '${snapshot.data}',
-                                  style: TextStyle(
-                                    fontFamily: 'Ubuntu',
-                                    color: Colors.blue,
-                                    fontSize: 20,
-                                  ),
-                                );
-                              } else if (snapshot.hasError) {
-                                return Text(
-                                  '${snapshot.error}',
-                                  style: TextStyle(
-                                    fontFamily: 'Ubuntu',
-                                    color: Colors.red,
-                                    fontSize: 20,
-                                  ),
-                                );
-                              } else {
-                                return Row(
-                                  children: [
-                                    Text(
-                                      '${snapshot.data}',
-                                      style: TextStyle(
-                                        fontFamily: 'Ubuntu',
-                                        color: Colors.blue,
-                                        fontSize: 20,
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Icon(
+                      Icons.phone,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    SizedBox(
+                      child: userInfo.phoneNumber != null
+                          ? Text(
+                              userInfo.phoneNumber,
+                              style: TextStyle(
+                                fontFamily: 'Ubuntu',
+                                color: Colors.blue,
+                                fontSize: 20,
+                              ),
+                            )
+                          : FutureBuilder<String>(
+                              future: getPhoneNum(),
+                              initialData: 'Loading...',
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<String> snapshot) {
+                                if (snapshot.hasData &&
+                                    snapshot.data != 'Loading...') {
+                                  return Text(
+                                    '${snapshot.data}',
+                                    style: TextStyle(
+                                      fontFamily: 'Ubuntu',
+                                      color: Colors.blue,
+                                      fontSize: 20,
+                                    ),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Text(
+                                    '${snapshot.error}',
+                                    style: TextStyle(
+                                      fontFamily: 'Ubuntu',
+                                      color: Colors.red,
+                                      fontSize: 20,
+                                    ),
+                                  );
+                                } else {
+                                  return Row(
+                                    children: [
+                                      Text(
+                                        '${snapshot.data}',
+                                        style: TextStyle(
+                                          fontFamily: 'Ubuntu',
+                                          color: Colors.blue,
+                                          fontSize: 20,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                      width: 10,
-                                      child:
-                                          CircularProgressIndicator.adaptive(),
-                                    ),
-                                  ],
-                                );
-                              }
-                            }),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    userInfo.phoneNumber != null
-                        ? Icons.verified_user_rounded
-                        : Icons.cancel,
-                    color: userInfo.phoneNumber != null
-                        ? Colors.greenAccent
-                        : Colors.red,
-                    size: 17,
-                  ),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    userInfo.phoneNumber != null
-                        ? 'Number verified'
-                        : 'Number not verified',
-                    style: TextStyle(
-                      fontFamily: 'Ubuntu',
+                                      SizedBox(
+                                        height: 10,
+                                        width: 10,
+                                        child: CircularProgressIndicator
+                                            .adaptive(),
+                                      ),
+                                    ],
+                                  );
+                                }
+                              }),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      userInfo.phoneNumber != null
+                          ? Icons.verified_user_rounded
+                          : Icons.cancel,
                       color: userInfo.phoneNumber != null
                           ? Colors.greenAccent
                           : Colors.red,
-                      fontSize: 15,
+                      size: 17,
                     ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(0.0),
-                    child: (userInfo.phoneNumber != null)
-                        ? null
-                        : Container(
-                            height: 30,
-                            width: 100,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.green,
-                            ),
-                            child: TextButton(
-                                // color: Colors.green,
-                                child: Text(
-                                  'Verify Now',
-                                  style: TextStyle(
-                                    fontFamily: 'Ubuntu',
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  if (userInfo.phoneNumber == null) {
-                                    await phoneVerification();
-                                  }
-                                }),
-                          ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              IconButton(
-                onPressed: () async {
-                  User? refreshedUser = await refreshUser(userInfo);
-                  if (refreshedUser != null) {
-                    setState(() {
-                      userInfo = refreshedUser;
-                    });
-                  }
-                },
-                icon: Icon(
-                  Icons.refresh,
-                  color: Colors.blueAccent,
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Container(
-                height: 30,
-                width: 150,
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: TextButton(
-                    child: Text(
-                      'Log Out',
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      userInfo.phoneNumber != null
+                          ? 'Number verified'
+                          : 'Number not verified',
                       style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
                         fontFamily: 'Ubuntu',
-                        color: Colors.black,
+                        color: userInfo.phoneNumber != null
+                            ? Colors.greenAccent
+                            : Colors.red,
+                        fontSize: 15,
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                      _auth.signOut();
-                    }),
-              ),
-            ],
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(0.0),
+                      child: (userInfo.phoneNumber != null)
+                          ? null
+                          : Container(
+                              height: 30,
+                              width: 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.green,
+                              ),
+                              child: TextButton(
+                                  // color: Colors.green,
+                                  child: Text(
+                                    'Verify Now',
+                                    style: TextStyle(
+                                      fontFamily: 'Ubuntu',
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    if (userInfo.phoneNumber == null) {
+                                      await phoneVerification();
+                                    }
+                                  }),
+                            ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                IconButton(
+                  onPressed: () async {
+                    setState(() {
+                      imgLoading = true;
+                    });
+                    User? refreshedUser = await refreshUser(userInfo);
+                    if (refreshedUser != null) {
+                      setState(() {
+                        imgLoading = false;
+                        userInfo = refreshedUser;
+                      });
+                    }
+                  },
+                  icon: Icon(
+                    Icons.refresh,
+                    color: Colors.blueAccent,
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Container(
+                  height: 30,
+                  width: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: TextButton(
+                      child: Text(
+                        'Log Out',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Ubuntu',
+                          color: Colors.black,
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          loading = true;
+                        });
+                        Future.delayed(Duration(seconds: 1), () {
+                          _auth.signOut();
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        });
+                      }),
+                ),
+              ],
+            ),
           ),
         ),
       ),

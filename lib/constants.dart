@@ -40,3 +40,4 @@ Color borderColor = Colors.black;
 Color cursorColor = Colors.black;
 Color lowerTextColor = Colors.blue;
 Color imgPickTextColor = Colors.white;
+Color msgCardColor = Colors.white10;

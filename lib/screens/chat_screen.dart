@@ -1,5 +1,8 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, avoid_init_to_null, prefer_const_literals_to_create_immutables
 
+import 'dart:ui';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
@@ -18,16 +21,23 @@ class _ChatScreenState extends State<ChatScreen> {
   var loggedInUser = null;
   bool loading = false;
   bool imgLoading = true;
-  void getCurrentUser() {
+  String? curUserText;
+  ImageProvider<Object>? curUserImg, userImg;
+  FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  bool isDataRetrieved = false;
+  var userInfo;
+  void getCurrentUser() async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
         loggedInUser = user;
-        Future.delayed(Duration(seconds: 1), () {
+        curUserImg = NetworkImage(loggedInUser.photoURL);
+        Future.delayed(Duration(seconds: 2), () {
           setState(() {
             imgLoading = false;
           });
         });
+        userInfo = await firebaseFirestore.collection("UserInfo").get();
         print(loggedInUser);
       }
     } catch (e) {
@@ -40,6 +50,93 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     getCurrentUser();
+  }
+
+  void storeMessage() {
+    firebaseFirestore.collection("messages").add({
+      'sender': loggedInUser.email,
+      'text': curUserText,
+      'createdAt': Timestamp.now(),
+    });
+  }
+
+  Future<Widget?> loadMessage() async {
+    try {
+      await for (var snapshot
+          in firebaseFirestore.collection('messages').snapshots()) {
+        for (var message in snapshot.docs) {
+          return getUserInfo(message.data()['sender'], message.data()['text']);
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Widget showCurUserText(String text) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: msgCardColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: inputTextColor,
+                fontFamily: 'Ubuntu',
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  dynamic getUserInfo(String email, String text) {
+    for (var user in userInfo.docs) {
+      if (user.data()['Email'] == email) {
+        print(user.data()['Image']);
+        return showUserText(user, text);
+      }
+    }
+  }
+
+  Widget showUserText(var user, String text) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 12,
+          backgroundImage: NetworkImage(user.data()['Image']),
+        ),
+        SizedBox(
+          width: 2,
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: msgCardColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: inputTextColor,
+                fontFamily: 'Ubuntu',
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -71,7 +168,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                     : CircleAvatar(
                         radius: 15,
-                        backgroundImage: NetworkImage(loggedInUser.photoURL),
+                        backgroundImage: curUserImg,
                       ),
               ),
               SizedBox(
@@ -97,12 +194,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 loading = true;
               });
               if (value == 1) {
-                // Navigator.pop(context);
-                _auth.signOut();
-                setState(() {
-                  loading = false;
+                Future.delayed(Duration(seconds: 1), () {
+                  _auth.signOut();
+                  setState(() {
+                    loading = false;
+                  });
+                  Navigator.pop(context);
                 });
-                Navigator.pop(context);
               }
             },
             color: Colors.orangeAccent,
@@ -131,10 +229,127 @@ class _ChatScreenState extends State<ChatScreen> {
         inAsyncCall: loading,
         child: Padding(
           padding: EdgeInsets.only(
-            top: 50,
-            left: 24,
-            right: 24,
+            top: 24,
+            left: 10,
+            right: 10,
           ),
+          child: ListView(
+            children: [
+              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: firebaseFirestore
+                    .collection('messages')
+                    .orderBy('createdAt', descending: false)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  List<Widget> chatHistory = [];
+                  if (snapshot.hasData) {
+                    for (var message in snapshot.data!.docs) {
+                      if (message.data()['sender'] == loggedInUser.email) {
+                        chatHistory
+                            .add(showCurUserText(message.data()['text']));
+                      } else {
+                        chatHistory.add(getUserInfo(
+                            message.data()['sender'], message.data()['text']));
+                      }
+                    }
+                    return Column(
+                      children: chatHistory,
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'No Data Found!',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 30,
+                          fontFamily: 'Ubuntu',
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Center(
+                      child: SizedBox(
+                        height: 50,
+                        width: 50,
+                        child: CircularProgressIndicator.adaptive(
+                          backgroundColor: Colors.blue,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          //mainAxisAlignment: MainAxisAlignment.,
+          children: [
+            Expanded(
+              child: TextField(
+                onChanged: (value) {
+                  if (value.isNotEmpty) {
+                    setState(() {
+                      curUserText = value;
+                    });
+                  }
+                },
+                style: TextStyle(
+                  color: inputTextColor,
+                  fontFamily: 'Ubuntu',
+                  fontSize: 15,
+                ),
+                cursorHeight: 20,
+                decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(
+                      color: borderColor,
+                      width: 2,
+                    ),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.message_outlined,
+                    color: iconColor,
+                  ),
+                  hintText: 'Enter Message Here',
+                  hintStyle: TextStyle(
+                    fontFamily: 'Ubuntu',
+                    fontSize: 15,
+                    color: hintTextColor,
+                  ),
+                ),
+                cursorColor: cursorColor,
+              ),
+            ),
+            SizedBox(
+              width: 5,
+            ),
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  storeMessage();
+                });
+              },
+              icon: Icon(
+                Icons.send,
+                color: Colors.blue,
+                size: 35,
+              ),
+            ),
+          ],
         ),
       ),
     );
