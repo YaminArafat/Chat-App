@@ -18,21 +18,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     getCurrentUser();
+    print(userInfo.phoneNumber);
   }
 
-  void getCurrentUser() {
+  bool imgLoading = true;
+  void getCurrentUser() async {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser != null) {
         userInfo = currentUser;
-        getPhoneNum();
+        await getPhoneNum();
+        setState(() {
+          imgLoading = false;
+        });
       }
     } catch (e) {
       print(e);
     }
   }
 
-  late PhoneAuthCredential _phoneAuthCredential;
+  /*late PhoneAuthCredential _phoneAuthCredential;*/
   bool isVerified = false;
   Future<void> phoneVerification() async {
     late String verifySmsCode;
@@ -45,10 +50,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         //await _auth.signInWithCredential(phoneAuthCredential);
         // await linkPhoneWithEmail(phoneAuthCredential);
         await userInfo.linkWithCredential(phoneAuthCredential);
-        setState(() {
-          _phoneAuthCredential = phoneAuthCredential;
-          verifiedPhone = true;
-        });
+        User? refreshedUser = await refreshUser(userInfo);
+        if (refreshedUser != null) {
+          setState(() {
+            userInfo = refreshedUser;
+          });
+        }
       },
       verificationFailed: (FirebaseAuthException e) {
         print(e);
@@ -64,8 +71,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icons.close,
             color: Colors.black,
           ),
-
-          ///
           content: Padding(
             padding: const EdgeInsets.only(
               top: 10,
@@ -88,9 +93,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     await userInfo.linkWithCredential(phoneAuthCredential);
                     // await linkPhoneWithEmail(phoneAuthCredential);
                     setState(() {
-                      _phoneAuthCredential = phoneAuthCredential;
+                      //_phoneAuthCredential = phoneAuthCredential;
                       isVerified = true;
-                      verifiedPhone = true;
                     });
                   } catch (e) {
                     print(e);
@@ -222,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> linkPhoneWithEmail(
+  /*Future<void> linkPhoneWithEmail(
       PhoneAuthCredential phoneAuthCredential) async {
     final AuthCredential authCredential = EmailAuthProvider.credential(
         email: userInfo.email, password: _password);
@@ -231,19 +235,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await userInfo.linkWithCredential(phoneAuthCredential);
     // await userCredential.user!.linkWithCredential(phoneAuthCredential);
     // await userCredential.user!.linkWithPhoneNumber(_mobile);
-  }
+  }*/
 
   Future<String> getPhoneNum() async {
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     var users = await firebaseFirestore.collection('UserInfo').get();
-    String? phoneNum, password;
+    String? phoneNum; // password;
     for (var user in users.docs) {
       if (user.data()['UserID'] == userInfo.uid) {
         phoneNum = user.data()['Mobile No'];
-        password = user.data()['Password'];
+        // password = user.data()['Password'];
         setState(() {
           _mobile = phoneNum!;
-          _password = password!;
+          // _password = password!;
         });
         break;
         // print(user.data()['Mobile No']);
@@ -256,10 +260,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _auth = FirebaseAuth.instance;
   var userInfo;
 
-  bool verifiedPhone = false;
   late String _mobile;
-  late String _password;
-
+  //late String _password;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -286,11 +288,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Hero(
                 tag: 'profilePic',
-                child: CircleAvatar(
-                  // backgroundColor: Colors.blue,
-                  radius: 100,
-                  backgroundImage: NetworkImage(userInfo.photoURL),
-                ),
+                child: imgLoading
+                    ? SizedBox(
+                        height: 50,
+                        width: 50,
+                        child: CircularProgressIndicator.adaptive(
+                            // backgroundColor: Colors.white,
+                            ),
+                      )
+                    : CircleAvatar(
+                        // backgroundColor: Colors.blue,
+                        radius: 100,
+                        backgroundImage: NetworkImage(userInfo.photoURL),
+                      ),
               ),
               SizedBox(
                 height: 20,
@@ -450,49 +460,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(
                     width: 5,
                   ),
-                  FutureBuilder<String>(
-                      future: getPhoneNum(),
-                      initialData: 'Loading...',
-                      builder: (BuildContext context,
-                          AsyncSnapshot<String> snapshot) {
-                        if (snapshot.hasData && snapshot.data != 'Loading...') {
-                          return Text(
-                            '${snapshot.data}',
+                  SizedBox(
+                    child: userInfo.phoneNumber != null
+                        ? Text(
+                            userInfo.phoneNumber,
                             style: TextStyle(
                               fontFamily: 'Ubuntu',
                               color: Colors.blue,
                               fontSize: 20,
                             ),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Text(
-                            '${snapshot.error}',
-                            style: TextStyle(
-                              fontFamily: 'Ubuntu',
-                              color: Colors.red,
-                              fontSize: 20,
-                            ),
-                          );
-                        } else {
-                          return Row(
-                            children: [
-                              Text(
-                                '${snapshot.data}',
-                                style: TextStyle(
-                                  fontFamily: 'Ubuntu',
-                                  color: Colors.blue,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 10,
-                                width: 10,
-                                child: CircularProgressIndicator.adaptive(),
-                              ),
-                            ],
-                          );
-                        }
-                      }),
+                          )
+                        : FutureBuilder<String>(
+                            future: getPhoneNum(),
+                            initialData: 'Loading...',
+                            builder: (BuildContext context,
+                                AsyncSnapshot<String> snapshot) {
+                              if (snapshot.hasData &&
+                                  snapshot.data != 'Loading...') {
+                                return Text(
+                                  '${snapshot.data}',
+                                  style: TextStyle(
+                                    fontFamily: 'Ubuntu',
+                                    color: Colors.blue,
+                                    fontSize: 20,
+                                  ),
+                                );
+                              } else if (snapshot.hasError) {
+                                return Text(
+                                  '${snapshot.error}',
+                                  style: TextStyle(
+                                    fontFamily: 'Ubuntu',
+                                    color: Colors.red,
+                                    fontSize: 20,
+                                  ),
+                                );
+                              } else {
+                                return Row(
+                                  children: [
+                                    Text(
+                                      '${snapshot.data}',
+                                      style: TextStyle(
+                                        fontFamily: 'Ubuntu',
+                                        color: Colors.blue,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                      width: 10,
+                                      child:
+                                          CircularProgressIndicator.adaptive(),
+                                    ),
+                                  ],
+                                );
+                              }
+                            }),
+                  ),
                 ],
               ),
               SizedBox(
@@ -502,18 +525,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    verifiedPhone ? Icons.verified_user_rounded : Icons.cancel,
-                    color: verifiedPhone ? Colors.greenAccent : Colors.red,
+                    userInfo.phoneNumber != null
+                        ? Icons.verified_user_rounded
+                        : Icons.cancel,
+                    color: userInfo.phoneNumber != null
+                        ? Colors.greenAccent
+                        : Colors.red,
                     size: 17,
                   ),
                   SizedBox(
                     width: 5,
                   ),
                   Text(
-                    verifiedPhone ? 'Number verified' : 'Number not verified',
+                    userInfo.phoneNumber != null
+                        ? 'Number verified'
+                        : 'Number not verified',
                     style: TextStyle(
                       fontFamily: 'Ubuntu',
-                      color: verifiedPhone ? Colors.greenAccent : Colors.red,
+                      color: userInfo.phoneNumber != null
+                          ? Colors.greenAccent
+                          : Colors.red,
                       fontSize: 15,
                     ),
                   ),
@@ -522,7 +553,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(0.0),
-                    child: (verifiedPhone)
+                    child: (userInfo.phoneNumber != null)
                         ? null
                         : Container(
                             height: 30,
@@ -542,11 +573,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  if (!verifiedPhone) {
+                                  if (userInfo.phoneNumber == null) {
                                     await phoneVerification();
-                                    /*setState(() {
-                                      verifiedPhone = true;
-                                    });*/
                                   }
                                 }),
                           ),

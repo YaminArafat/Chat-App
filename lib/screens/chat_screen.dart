@@ -17,11 +17,17 @@ class _ChatScreenState extends State<ChatScreen> {
   final _auth = FirebaseAuth.instance;
   var loggedInUser = null;
   bool loading = false;
+  bool imgLoading = true;
   void getCurrentUser() {
     try {
       final user = _auth.currentUser;
       if (user != null) {
         loggedInUser = user;
+        Future.delayed(Duration(seconds: 1), () {
+          setState(() {
+            imgLoading = false;
+          });
+        });
         print(loggedInUser);
       }
     } catch (e) {
@@ -55,10 +61,18 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Hero(
                 tag: 'profilePic',
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundImage: NetworkImage(loggedInUser.photoURL),
-                ),
+                child: imgLoading
+                    ? SizedBox(
+                        height: 7,
+                        width: 7,
+                        child: CircularProgressIndicator.adaptive(
+                          backgroundColor: Colors.white,
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: 15,
+                        backgroundImage: NetworkImage(loggedInUser.photoURL),
+                      ),
               ),
               SizedBox(
                 width: 5,
