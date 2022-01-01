@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
+import 'package:we_chat/screens/login_screen.dart';
 import 'package:we_chat/screens/profile_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   bool isDataRetrieved = false;
   var userInfo;
+  TextEditingController textEditingController = TextEditingController();
   void getCurrentUser() async {
     try {
       final user = _auth.currentUser;
@@ -38,7 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
           });
         });
         userInfo = await firebaseFirestore.collection("UserInfo").get();
-        print(loggedInUser);
+        //print(loggedInUser);
       }
     } catch (e) {
       print(e);
@@ -74,68 +76,74 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget showCurUserText(String text) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: msgCardColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(
-              text,
-              style: TextStyle(
-                color: inputTextColor,
-                fontFamily: 'Ubuntu',
-                fontSize: 20,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: inputTextColor,
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   dynamic getUserInfo(String email, String text) {
     for (var user in userInfo.docs) {
       if (user.data()['Email'] == email) {
-        print(user.data()['Image']);
+        // print(user.data()['Image']);
         return showUserText(user, text);
       }
     }
   }
 
   Widget showUserText(var user, String text) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 12,
-          backgroundImage: NetworkImage(user.data()['Image']),
-        ),
-        SizedBox(
-          width: 2,
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: msgCardColor,
-            borderRadius: BorderRadius.circular(20),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 12,
+            backgroundImage: NetworkImage(user.data()['Image']),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(
-              text,
-              style: TextStyle(
-                color: inputTextColor,
-                fontFamily: 'Ubuntu',
-                fontSize: 20,
+          SizedBox(
+            width: 5,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: inputTextColor,
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -199,7 +207,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   setState(() {
                     loading = false;
                   });
-                  Navigator.pop(context);
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, LoginScreen.id, (route) => false);
                 });
               }
             },
@@ -233,123 +242,141 @@ class _ChatScreenState extends State<ChatScreen> {
             left: 10,
             right: 10,
           ),
-          child: ListView(
+          child: Column(
             children: [
-              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: firebaseFirestore
-                    .collection('messages')
-                    .orderBy('createdAt', descending: false)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  List<Widget> chatHistory = [];
-                  if (snapshot.hasData) {
-                    for (var message in snapshot.data!.docs) {
-                      if (message.data()['sender'] == loggedInUser.email) {
-                        chatHistory
-                            .add(showCurUserText(message.data()['text']));
-                      } else {
-                        chatHistory.add(getUserInfo(
-                            message.data()['sender'], message.data()['text']));
-                      }
-                    }
-                    return Column(
-                      children: chatHistory,
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'No Data Found!',
+              Expanded(
+                child: ListView(
+                  children: [
+                    StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: firebaseFirestore
+                          .collection('messages')
+                          .orderBy('createdAt', descending: false)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        List<Widget> chatHistory = [];
+                        if (snapshot.hasData) {
+                          try {
+                            for (var message in snapshot.data!.docs) {
+                              if (message.data()['sender'] ==
+                                  loggedInUser.email) {
+                                chatHistory.add(
+                                    showCurUserText(message.data()['text']));
+                              } else {
+                                chatHistory.add(getUserInfo(
+                                    message.data()['sender'],
+                                    message.data()['text']));
+                              }
+                            }
+                            return Column(
+                              children: chatHistory,
+                            );
+                          } catch (e) {
+                            return Center(
+                              child: SizedBox(
+                                height: 50,
+                                width: 50,
+                                child: CircularProgressIndicator.adaptive(),
+                              ),
+                            );
+                          }
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'No Data Found!',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 30,
+                                fontFamily: 'Ubuntu',
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          );
+                        } else {
+                          return Center(
+                            child: SizedBox(
+                              height: 50,
+                              width: 50,
+                              child: CircularProgressIndicator.adaptive(
+                                backgroundColor: Colors.blue,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  //mainAxisAlignment: MainAxisAlignment.,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: textEditingController,
+                        onChanged: (value) {
+                          if (value.isNotEmpty) {
+                            setState(() {
+                              curUserText = value;
+                            });
+                          }
+                        },
                         style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 30,
+                          color: inputTextColor,
                           fontFamily: 'Ubuntu',
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
+                          fontSize: 15,
                         ),
-                      ),
-                    );
-                  } else {
-                    return Center(
-                      child: SizedBox(
-                        height: 50,
-                        width: 50,
-                        child: CircularProgressIndicator.adaptive(
-                          backgroundColor: Colors.blue,
+                        cursorHeight: 20,
+                        decoration: InputDecoration(
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                            borderSide: BorderSide(
+                              color: borderColor,
+                              width: 2,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                            borderSide: BorderSide(
+                              color: borderColor,
+                              width: 2,
+                            ),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.message_outlined,
+                            color: iconColor,
+                          ),
+                          hintText: 'Enter Message Here',
+                          hintStyle: TextStyle(
+                            fontFamily: 'Ubuntu',
+                            fontSize: 15,
+                            color: hintTextColor,
+                          ),
                         ),
+                        cursorColor: cursorColor,
                       ),
-                    );
-                  }
-                },
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        textEditingController.clear();
+                        storeMessage();
+                      },
+                      icon: Icon(
+                        Icons.send,
+                        color: Colors.blue,
+                        size: 35,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
-          //mainAxisAlignment: MainAxisAlignment.,
-          children: [
-            Expanded(
-              child: TextField(
-                onChanged: (value) {
-                  if (value.isNotEmpty) {
-                    setState(() {
-                      curUserText = value;
-                    });
-                  }
-                },
-                style: TextStyle(
-                  color: inputTextColor,
-                  fontFamily: 'Ubuntu',
-                  fontSize: 15,
-                ),
-                cursorHeight: 20,
-                decoration: InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(
-                      color: borderColor,
-                      width: 2,
-                    ),
-                  ),
-                  prefixIcon: Icon(
-                    Icons.message_outlined,
-                    color: iconColor,
-                  ),
-                  hintText: 'Enter Message Here',
-                  hintStyle: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontSize: 15,
-                    color: hintTextColor,
-                  ),
-                ),
-                cursorColor: cursorColor,
-              ),
-            ),
-            SizedBox(
-              width: 5,
-            ),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  storeMessage();
-                });
-              },
-              icon: Icon(
-                Icons.send,
-                color: Colors.blue,
-                size: 35,
-              ),
-            ),
-          ],
         ),
       ),
     );

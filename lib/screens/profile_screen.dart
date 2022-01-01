@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
+import 'package:we_chat/screens/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   static String id = 'Profile_Screen';
@@ -633,8 +634,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         });
                         Future.delayed(Duration(seconds: 1), () {
                           _auth.signOut();
-                          Navigator.pop(context);
-                          Navigator.pop(context);
+                          Navigator.pushNamedAndRemoveUntil(
+                              context, LoginScreen.id, (route) => false);
                         });
                       }),
                 ),
