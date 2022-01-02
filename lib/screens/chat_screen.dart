@@ -25,124 +25,6 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isDataRetrieved = false;
   late var userInfo = null;
   TextEditingController textEditingController = TextEditingController();
-  void getCurrentUser() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        loggedInUser = user;
-        curUserImg = NetworkImage(loggedInUser.photoURL);
-        Future.delayed(Duration(seconds: 2), () {
-          setState(() {
-            imgLoading = false;
-          });
-        });
-        userInfo = await firebaseFirestore.collection("UserInfo").get();
-        //print(loggedInUser);
-      }
-    } catch (e) {
-      print(e);
-      logInError(context, e).show();
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getCurrentUser();
-  }
-
-  void storeMessage() {
-    firebaseFirestore.collection("messages").add({
-      'sender': loggedInUser.email,
-      'text': curUserText,
-      'createdAt': Timestamp.now(),
-    });
-  }
-
-  Future<Widget?> loadMessage() async {
-    try {
-      await for (var snapshot
-          in firebaseFirestore.collection('messages').snapshots()) {
-        for (var message in snapshot.docs) {
-          return getUserInfo(message.data()['sender'], message.data()['text']);
-        }
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Widget showCurUserText(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 5.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: inputTextColor,
-                  fontFamily: 'Ubuntu',
-                  fontSize: 20,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  dynamic getUserInfo(String email, String text) {
-    for (var user in userInfo!.docs) {
-      if (user.data()['Email'] == email) {
-        // print(user.data()['Image']);
-        return showUserText(user, text);
-      }
-    }
-  }
-
-  Widget showUserText(var user, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 5.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 12,
-            backgroundImage: NetworkImage(user.data()['Image']),
-          ),
-          SizedBox(
-            width: 5,
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: inputTextColor,
-                  fontFamily: 'Ubuntu',
-                  fontSize: 20,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -268,6 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               children: chatHistory,
                             );
                           } catch (e) {
+                            print(e);
                             return Center(
                               child: SizedBox(
                                 height: 50,
@@ -375,6 +258,167 @@ class _ChatScreenState extends State<ChatScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void getCurrentUser() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        loggedInUser = user;
+        curUserImg = NetworkImage(loggedInUser.photoURL);
+        Future.delayed(Duration(seconds: 2), () {
+          setState(() {
+            imgLoading = false;
+          });
+        });
+        userInfo = await firebaseFirestore.collection("UserInfo").get();
+        print(loggedInUser);
+      }
+    } catch (e) {
+      print(e);
+      logInError(context, e).show();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+  }
+
+  void storeMessage() {
+    try {
+      firebaseFirestore.collection("messages").add({
+        'sender': loggedInUser.email,
+        'text': curUserText,
+        'createdAt': Timestamp.now(),
+      });
+    } catch (e) {
+      print(e);
+      smallErrorMsg(e.toString());
+    }
+  }
+
+  Alert smallErrorMsg(String msg) {
+    return Alert(
+      context: context,
+      title: 'Something Went Wrong!',
+      style: alertStyle,
+      desc: msg,
+      closeIcon: Icon(
+        Icons.close,
+        color: Colors.black,
+      ),
+      buttons: [
+        DialogButton(
+          color: Colors.green,
+          width: 100,
+          height: 30,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            'Try Again',
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: "Ubuntu",
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<Widget?> loadMessage() async {
+    try {
+      await for (var snapshot
+          in firebaseFirestore.collection('messages').snapshots()) {
+        for (var message in snapshot.docs) {
+          return getUserInfo(message.data()['sender'], message.data()['text']);
+        }
+      }
+    } catch (e) {
+      print(e);
+      smallErrorMsg();
+    }
+  }
+
+  Widget showCurUserText(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: inputTextColor,
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  dynamic getUserInfo(String email, String text) {
+    try {
+      for (var user in userInfo!.docs) {
+        if (user.data()['Email'] == email) {
+          // print(user.data()['Image']);
+          return showUserText(user, text);
+        }
+      }
+    } catch (e) {
+      print(e);
+      smallErrorMsg(e.toString());
+    }
+  }
+
+  Widget showUserText(var user, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 12,
+            backgroundImage: NetworkImage(user.data()['Image']),
+          ),
+          SizedBox(
+            width: 5,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: inputTextColor,
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

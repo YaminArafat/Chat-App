@@ -15,263 +15,21 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  @override
-  void initState() {
-    super.initState();
-    getCurrentUser();
-    print(userInfo.phoneNumber);
-  }
-
   bool imgLoading = true;
   bool loading = false;
-  void getCurrentUser() async {
-    try {
-      final currentUser = _auth.currentUser;
-      if (currentUser != null) {
-        userInfo = currentUser;
-
-        await getPhoneNum();
-        Future.delayed(Duration(milliseconds: 500), () {
-          setState(() {
-            imgLoading = false;
-          });
-        });
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
   bool isVerified = false;
-  late String verifySmsCode;
-  Future<void> phoneVerification() async {
-    print(_mobile);
-    await _auth.verifyPhoneNumber(
-      phoneNumber: _mobile,
-      verificationCompleted: (PhoneAuthCredential phoneAuthCredential) async {
-        Navigator.pop(context);
-        print('in');
-        //await _auth.signInWithCredential(phoneAuthCredential);
-        // await linkPhoneWithEmail(phoneAuthCredential);
-        await userInfo.linkWithCredential(phoneAuthCredential);
-        User? refreshedUser = await refreshUser(userInfo);
-        if (refreshedUser != null) {
-          setState(() {
-            userInfo = refreshedUser;
-          });
-        }
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        print(e);
-        print('Aalif');
-      },
-      codeSent: (String verificationId, int? resendToken) async {
-        Alert(
-          context: context,
-          title: 'Verification OTP Sent',
-          desc:
-              'Check your messages & write the OTP code here.\nThen click the refresh button to get the verification icon',
-          closeIcon: Icon(
-            Icons.close,
-            color: Colors.black,
-          ),
-          content: Padding(
-            padding: const EdgeInsets.only(
-              top: 10,
-              left: 10,
-              right: 10,
-            ),
-            child: TextField(
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                if (value.isNotEmpty) {
-                  setState(() {
-                    verifySmsCode = value;
-                  });
-                }
-              },
-              style: TextStyle(
-                color: inputTextColor,
-                fontFamily: 'Ubuntu',
-                fontSize: 20,
-              ),
-              cursorHeight: 20,
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide(
-                    color: borderColor,
-                    width: 2,
-                  ),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide(
-                    color: borderColor,
-                    width: 2,
-                  ),
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide(
-                    color: borderColor,
-                    width: 2,
-                  ),
-                ),
-                prefixIcon: Icon(Icons.security),
-                hintText: 'Enter OTP Code Here',
-                hintStyle: TextStyle(
-                  fontFamily: 'Ubuntu',
-                  fontSize: 20,
-                  color: hintTextColor,
-                ),
-              ),
-              cursorColor: cursorColor,
-            ),
-          ),
-          buttons: [
-            DialogButton(
-              color: Colors.green,
-              width: 100,
-              height: 30,
-              onPressed: () {
-                try {
-                  /*PhoneAuthCredential phoneAuthCredential =
-                  PhoneAuthProvider.credential(
-                      verificationId: verificationId,
-                      smsCode: verifySmsCode);
-                  // await _auth.signInWithCredential(phoneAuthCredential);
-                  await userInfo.linkWithCredential(phoneAuthCredential);
-                  // await linkPhoneWithEmail(phoneAuthCredential);*/
-                  setState(() {
-                    isVerified = true;
-                  });
-                } catch (e) {
-                  print(e);
-                  print('Aalif 2');
-                }
-                if (isVerified) {
-                  Navigator.pop(context);
-                }
-              },
-              child: Text(
-                'Done',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontFamily: "Ubuntu",
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-          style: AlertStyle(
-            titleStyle: TextStyle(
-              color: Colors.blue,
-              fontFamily: 'Ubuntu',
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1,
-              //backgroundColor: Colors.orangeAccent,
-            ),
-            descStyle: TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-              fontFamily: 'Ubuntu',
-            ),
-          ),
-        ).show();
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        //Navigator.pop(context);
-        Alert(
-          context: context,
-          title: 'Timed Out!!',
-          desc: 'Timed out waiting for SMS.',
-          closeIcon: Icon(
-            Icons.close,
-            color: Colors.black,
-          ),
-          buttons: [
-            DialogButton(
-              color: Colors.green,
-              width: 100,
-              height: 30,
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Try Again',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontFamily: "Ubuntu",
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-          style: AlertStyle(
-            titleStyle: TextStyle(
-              color: Colors.redAccent,
-              fontFamily: 'Ubuntu',
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
-              //backgroundColor: Colors.orangeAccent,
-            ),
-            descStyle: TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-              fontFamily: 'Ubuntu',
-            ),
-          ),
-        ).show();
-      },
-    );
-  }
-
-  /*Future<void> linkPhoneWithEmail(
-      PhoneAuthCredential phoneAuthCredential) async {
-    final AuthCredential authCredential = EmailAuthProvider.credential(
-        email: userInfo.email, password: _password);
-    final UserCredential userCredential =
-        await _auth.signInWithCredential(authCredential);
-    await userInfo.linkWithCredential(phoneAuthCredential);
-    // await userCredential.user!.linkWithCredential(phoneAuthCredential);
-    // await userCredential.user!.linkWithPhoneNumber(_mobile);
-  }*/
-
-  Future<String> getPhoneNum() async {
-    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-    var users = await firebaseFirestore.collection('UserInfo').get();
-    String? phoneNum; // password;
-    for (var user in users.docs) {
-      if (user.data()['UserID'] == userInfo.uid) {
-        phoneNum = user.data()['Mobile No'];
-        // password = user.data()['Password'];
-        setState(() {
-          _mobile = phoneNum!;
-          // _password = password!;
-        });
-        break;
-        // print(user.data()['Mobile No']);
-      }
-    }
-    phoneNum ??= 'Mobile number not available';
-    return phoneNum;
-  }
-
   final _auth = FirebaseAuth.instance;
   var userInfo;
-
   late String _mobile;
-  //late String _password;
+  late String verifySmsCode;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Profile Information',
+          'My Profile',
           style: TextStyle(
             fontSize: 25,
             fontFamily: 'Ubuntu',
@@ -400,7 +158,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                   onPressed: () async {
                                     if (!userInfo.emailVerified) {
-                                      await userInfo.sendEmailVerification();
+                                      try {
+                                        await userInfo.sendEmailVerification();
+                                      } catch (e) {
+                                        print(e);
+                                        smallErrorMsg(e.toString()).show();
+                                      }
                                       Alert(
                                         context: context,
                                         title: 'Verification E-mail Sent',
@@ -428,21 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             ),
                                           ),
                                         ],
-                                        style: AlertStyle(
-                                          titleStyle: TextStyle(
-                                            color: Colors.blue,
-                                            fontFamily: 'Ubuntu',
-                                            fontSize: 30,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1,
-                                            //backgroundColor: Colors.orangeAccent,
-                                          ),
-                                          descStyle: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 20,
-                                            fontFamily: 'Ubuntu',
-                                          ),
-                                        ),
+                                        style: alertStyle2,
                                       ).show();
                                     }
                                   }),
@@ -644,5 +393,252 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentUser();
+    print(userInfo.phoneNumber);
+  }
+
+  void getCurrentUser() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        userInfo = currentUser;
+        await getPhoneNum();
+        Future.delayed(Duration(milliseconds: 500), () {
+          setState(() {
+            imgLoading = false;
+          });
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> phoneVerification() async {
+    print(_mobile);
+    await _auth.verifyPhoneNumber(
+      phoneNumber: _mobile,
+      verificationCompleted: (PhoneAuthCredential phoneAuthCredential) async {
+        Navigator.pop(context);
+        print('in');
+        try {
+          await userInfo.linkWithCredential(phoneAuthCredential);
+        } catch (e) {
+          print(e);
+          smallErrorMsg(e.toString()).show();
+        }
+        User? refreshedUser = await refreshUser(userInfo);
+        if (refreshedUser != null) {
+          setState(() {
+            isVerified = true;
+            userInfo = refreshedUser;
+          });
+        }
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        print(e);
+        print('Aalif');
+        smallErrorMsg(e.toString()).show();
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        manualOTP().show();
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        Alert(
+          context: context,
+          title: 'Timed Out!!',
+          desc: 'Timed out waiting for SMS.',
+          closeIcon: Icon(
+            Icons.close,
+            color: Colors.black,
+          ),
+          buttons: [
+            DialogButton(
+              color: Colors.green,
+              width: 100,
+              height: 30,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Try Again',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "Ubuntu",
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+          style: alertStyle,
+        ).show();
+      },
+    );
+  }
+
+  Alert manualOTP() {
+    return Alert(
+      context: context,
+      title: 'Verification OTP Sent',
+      desc:
+          'Check your messages & write the OTP code here.\nThen click the refresh button to get the verification icon',
+      closeIcon: Icon(
+        Icons.close,
+        color: Colors.black,
+      ),
+      content: Padding(
+        padding: const EdgeInsets.only(
+          top: 10,
+          left: 10,
+          right: 10,
+        ),
+        child: TextField(
+          keyboardType: TextInputType.number,
+          onChanged: (value) {
+            if (value.isNotEmpty) {
+              setState(() {
+                verifySmsCode = value;
+              });
+            }
+          },
+          style: TextStyle(
+            color: inputTextColor,
+            fontFamily: 'Ubuntu',
+            fontSize: 20,
+          ),
+          cursorHeight: 20,
+          decoration: InputDecoration(
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0),
+              borderSide: BorderSide(
+                color: borderColor,
+                width: 2,
+              ),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0),
+              borderSide: BorderSide(
+                color: borderColor,
+                width: 2,
+              ),
+            ),
+            prefixIcon: Icon(
+              Icons.security,
+              color: Colors.blueAccent,
+            ),
+            hintText: 'Enter OTP Code Here',
+            hintStyle: TextStyle(
+              fontFamily: 'Ubuntu',
+              fontSize: 20,
+              color: hintTextColor,
+            ),
+          ),
+          cursorColor: cursorColor,
+        ),
+      ),
+      buttons: [
+        DialogButton(
+          color: Colors.green,
+          width: 100,
+          height: 30,
+          onPressed: () {
+            try {
+              /*PhoneAuthCredential phoneAuthCredential =
+                PhoneAuthProvider.credential(
+                    verificationId: verificationId,
+                    smsCode: verifySmsCode);
+                // await _auth.signInWithCredential(phoneAuthCredential);
+                await userInfo.linkWithCredential(phoneAuthCredential);
+                // await linkPhoneWithEmail(phoneAuthCredential);*/
+              setState(() {
+                isVerified = true;
+              });
+            } catch (e) {
+              print(e);
+              smallErrorMsg(e.toString()).show();
+            }
+            if (isVerified) {
+              Navigator.pop(context);
+            }
+          },
+          child: Text(
+            'Done',
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: "Ubuntu",
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+      style: alertStyle2,
+    );
+  }
+
+  Alert smallErrorMsg(String msg) {
+    return Alert(
+      context: context,
+      desc: msg,
+      title: 'Something Went Wrong!',
+      style: alertStyle,
+      closeIcon: Icon(
+        Icons.close,
+        color: Colors.black,
+      ),
+      buttons: [
+        DialogButton(
+          color: Colors.green,
+          width: 100,
+          height: 30,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            'Try Again',
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: "Ubuntu",
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /*Future<void> linkPhoneWithEmail(
+      PhoneAuthCredential phoneAuthCredential) async {
+    final AuthCredential authCredential = EmailAuthProvider.credential(
+        email: userInfo.email, password: _password);
+    final UserCredential userCredential =
+        await _auth.signInWithCredential(authCredential);
+    await userInfo.linkWithCredential(phoneAuthCredential);
+    // await userCredential.user!.linkWithCredential(phoneAuthCredential);
+    // await userCredential.user!.linkWithPhoneNumber(_mobile);
+  }*/
+
+  Future<String> getPhoneNum() async {
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+    var users = await firebaseFirestore.collection('UserInfo').get();
+    String? phoneNum; // password;
+    for (var user in users.docs) {
+      if (user.data()['UserID'] == userInfo.uid) {
+        phoneNum = user.data()['Mobile No'];
+        // password = user.data()['Password'];
+        setState(() {
+          _mobile = phoneNum!;
+          // _password = password!;
+        });
+        break;
+        // print(user.data()['Mobile No']);
+      }
+    }
+    phoneNum ??= 'Mobile number not available';
+    return phoneNum;
   }
 }

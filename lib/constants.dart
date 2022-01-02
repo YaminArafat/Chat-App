@@ -55,6 +55,21 @@ var alertTitleStyle = TextStyle(
   letterSpacing: 1.5,
   //backgroundColor: Colors.orangeAccent,
 );
+var alertStyle2 = AlertStyle(
+  titleStyle: TextStyle(
+    color: Colors.blue,
+    fontFamily: 'Ubuntu',
+    fontSize: 30,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1,
+    //backgroundColor: Colors.orangeAccent,
+  ),
+  descStyle: TextStyle(
+    color: Colors.black,
+    fontSize: 20,
+    fontFamily: 'Ubuntu',
+  ),
+);
 
 var alertStyle = AlertStyle(
   // backgroundColor: Colors.blueAccent,
