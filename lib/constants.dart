@@ -1,8 +1,8 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables, prefer_const_constructors
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 Future<User?> refreshUser(User user) async {
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -41,3 +41,35 @@ Color cursorColor = Colors.black;
 Color lowerTextColor = Colors.blue;
 Color imgPickTextColor = Colors.white;
 Color msgCardColor = Colors.grey;
+
+var alertDescStyle = TextStyle(
+  color: Colors.black,
+  fontSize: 20,
+  fontFamily: 'Ubuntu',
+);
+var alertTitleStyle = TextStyle(
+  color: Colors.redAccent,
+  fontFamily: 'Ubuntu',
+  fontSize: 30,
+  fontWeight: FontWeight.bold,
+  letterSpacing: 1.5,
+  //backgroundColor: Colors.orangeAccent,
+);
+
+var alertStyle = AlertStyle(
+  // backgroundColor: Colors.blueAccent,
+  // isButtonVisible: true,
+  titleStyle: TextStyle(
+    color: Colors.redAccent,
+    fontFamily: 'Ubuntu',
+    fontSize: 30,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1.5,
+    //backgroundColor: Colors.orangeAccent,
+  ),
+  descStyle: TextStyle(
+    color: Colors.black,
+    fontSize: 20,
+    fontFamily: 'Ubuntu',
+  ),
+);

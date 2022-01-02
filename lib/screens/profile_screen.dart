@@ -2,7 +2,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -30,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final currentUser = _auth.currentUser;
       if (currentUser != null) {
         userInfo = currentUser;
+
         await getPhoneNum();
         Future.delayed(Duration(milliseconds: 500), () {
           setState(() {
@@ -42,7 +42,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /*late PhoneAuthCredential _phoneAuthCredential;*/
   bool isVerified = false;
   late String verifySmsCode;
   Future<void> phoneVerification() async {

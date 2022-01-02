@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:we_chat/constants.dart';
 
-class RegInfo extends StatelessWidget {
+class TextFields extends StatelessWidget {
   final String? givenErrorText;
   final String givenHintText;
   final Icon icon;
@@ -13,7 +13,7 @@ class RegInfo extends StatelessWidget {
   final bool togglePassword;
   final void Function()? showHidePassword;
   final TextInputType? inputType;
-  RegInfo(
+  TextFields(
       {required this.icon,
       required this.givenErrorText,
       required this.givenHintText,

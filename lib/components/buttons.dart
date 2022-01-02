@@ -2,13 +2,13 @@
 
 import 'package:flutter/cupertino.dart';
 
-class AllButtons extends StatelessWidget {
+class Buttons extends StatelessWidget {
   final Color buttonColor;
   final Color buttonTextColor;
   final void Function()? onTap;
   final String buttonText;
 
-  AllButtons(
+  Buttons(
       {required this.buttonText,
       required this.buttonTextColor,
       required this.buttonColor,

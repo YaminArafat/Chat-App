@@ -1,17 +1,14 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_constructors_in_immutables, must_be_immutable, avoid_print, unnecessary_null_comparison, prefer_const_literals_to_create_immutables, prefer_typing_uninitialized_variables, avoid_init_to_null
 
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-import 'package:we_chat/components/all_buttons.dart';
-import 'package:we_chat/components/all_textfields.dart';
+import 'package:we_chat/components/buttons.dart';
+import 'package:we_chat/components/image_pick.dart';
+import 'package:we_chat/components/textfields.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/login_screen.dart';
 
@@ -30,229 +27,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String? errorPassword;
   String? errorConfirmPassword;
 
-  String _firstName = '';
-  String _lastName = '';
-  String _email = '';
-  String _mobile = '';
-  String _password = '';
-  String _confirmPassword = '';
+  String? imgUrl;
+  String? _firstName;
+  String? _lastName;
+  String? _email;
+  String? _mobile;
+  String? _password;
+  String? _confirmPassword;
 
   bool hidePassword = true;
   bool hideConfirmPassword = true;
 
   final _auth = FirebaseAuth.instance;
   final _userInfo = FirebaseFirestore.instance;
-  bool loading = false;
-
-  String? imgUrl;
-
-  void regCheck() async {
-    if (img == null) {
-      errorImg = 'User Image Required.';
-    } else {
-      errorImg = null;
-    }
-    if (_firstName.isEmpty) {
-      errorFirstName = 'Name field should not be empty.';
-    } else {
-      errorFirstName = null;
-    }
-    if (_lastName.isEmpty) {
-      errorLastName = 'Name field should not be empty.';
-    } else {
-      errorLastName = null;
-    }
-    if (_email.isEmpty) {
-      errorEmail = 'Email required.';
-    } else {
-      errorEmail = null;
-    }
-    if (_mobile.isEmpty) {
-      errorMobile = 'Contact details required.';
-    } else {
-      errorMobile = null;
-    }
-    if (_password.isEmpty) {
-      errorPassword = 'Password required.';
-    } else {
-      if (_password.length < 8) {
-        errorPassword = 'Password length must be minimum 8.';
-      } else {
-        errorPassword = null;
-      }
-    }
-    if (_confirmPassword.isEmpty) {
-      errorConfirmPassword = 'Confirm your password.';
-    } else {
-      if (_confirmPassword != _password) {
-        errorConfirmPassword = 'Password did not match';
-      } else if (errorImg == null &&
-          errorFirstName == null &&
-          errorLastName == null &&
-          errorEmail == null &&
-          errorMobile == null &&
-          errorPassword == null) {
-        errorConfirmPassword = null;
-        try {
-          setState(() {
-            loading = true;
-          });
-          UserCredential user = await _auth.createUserWithEmailAndPassword(
-              email: _email, password: _password);
-          var newUser = user.user;
-          if (newUser != null) {
-            await newUser.updateDisplayName(_firstName + ' ' + _lastName);
-            Reference imgReference =
-                firebaseStorage.ref().child('UserImages/$_email');
-            UploadTask uploadTask = imgReference.putFile(imgFile);
-            TaskSnapshot taskSnapshot = await uploadTask;
-            String url = await taskSnapshot.ref.getDownloadURL();
-            /*uploadTask
-                .then((result) => url = result.ref.getDownloadURL() as String?);*/
-            if (url != null) {
-              setState(() {
-                imgUrl = url;
-              });
-            }
-            /*uploadTask.whenComplete(() async {
-              String? url = await imgReference.getDownloadURL();
-              if (url != null) {
-                setState(() {
-                  imgUrl = url;
-                });
-              }
-            }).catchError((e) {
-              print(e);
-            });*/
-            print(imgUrl);
-            //Uri imgURL =
-            await newUser.updatePhotoURL(imgUrl);
-
-            User? refreshedUser = await refreshUser(newUser);
-            if (refreshedUser != null) {
-              setState(() {
-                newUser = refreshedUser;
-              });
-            }
-            // await newUser.reload();
-            if (newUser != null) {
-              _userInfo.collection("UserInfo").add({
-                'UserID': newUser!.uid,
-                'Image': newUser!.photoURL,
-                'Email': _email,
-                'First Name': _firstName,
-                'Last Name': _lastName,
-                'Mobile No': '+88' + _mobile,
-                'Password': _password,
-              });
-            }
-            Navigator.pushNamed(context, LoginScreen.id);
-            setState(() {
-              loading = false;
-            });
-          }
-        } catch (e) {
-          print(e);
-          String errorReg = e.toString(); //.substring(30);
-          Alert(
-            context: context,
-            title: 'Registration Unsuccessful!!',
-            desc: errorReg,
-            closeIcon: Icon(
-              Icons.close,
-              color: Colors.black,
-            ),
-            closeFunction: () {
-              Navigator.pop(context);
-              setState(() {
-                loading = false;
-              });
-            },
-            buttons: [
-              DialogButton(
-                color: Colors.green,
-                width: 100,
-                height: 30,
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    loading = false;
-                  });
-                },
-                child: Text(
-                  'Try Again',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontFamily: "Ubuntu",
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-            style: AlertStyle(
-              // backgroundColor: Colors.blueAccent,
-              isButtonVisible: true,
-              titleStyle: TextStyle(
-                color: Colors.redAccent,
-                fontFamily: 'Ubuntu',
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-                //backgroundColor: Colors.orangeAccent,
-              ),
-              descStyle: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontFamily: 'Ubuntu',
-              ),
-            ),
-          ).show();
-        }
-      } else {
-        errorConfirmPassword = null;
-      }
-    }
-  }
-
   var img = null;
   var imgFile = null;
   FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-  void galleryPicker() async {
-    try {
-      final pickedImg =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickedImg != null) {
-        setState(() {
-          imgFile = File(pickedImg.path);
-          img = Image.file(
-            File(pickedImg.path),
-          ).image;
-        });
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void cameraPicker() async {
-    try {
-      final pickedImg =
-          await ImagePicker().pickImage(source: ImageSource.camera);
-      if (pickedImg != null) {
-        setState(() {
-          imgFile = File(pickedImg.path);
-          img = Image.file(
-            File(pickedImg.path),
-          ).image;
-        });
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
+  bool loading = false;
+  late ImagePick imagePick;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -267,93 +59,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             right: 24,
           ),
           child: ListView(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            // crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              /*Hero(
-                tag: 'logo',
-                child: SizedBox(
-                  child: Image.asset('images/logo.png'),
-                  height: 100,
-                ),
-              ),*/
               CircleAvatar(
                 child: (img == null)
                     ? TextButton(
                         onPressed: () {
-                          Alert(
-                            context: context,
-                            title: 'Choose your option',
-                            closeIcon: Icon(
-                              Icons.close,
-                              color: Colors.black,
-                            ),
-                            buttons: [
-                              DialogButton(
-                                color: Colors.blueAccent,
-                                width: 100,
-                                height: 30,
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      'Cancel',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontFamily: "Ubuntu",
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            style: AlertStyle(
-                              titleStyle: TextStyle(
-                                fontFamily: 'Ubuntu',
-                                fontSize: 20,
-                              ),
-                            ),
-                            content: Column(
-                              children: [
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  thickness: 2,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    ImgPickOp(
-                                      icon: Icons.account_box_outlined,
-                                      color: Colors.green,
-                                      text: 'Gallery',
-                                      onPress: () {
-                                        galleryPicker();
-                                      },
-                                    ),
-                                    ImgPickOp(
-                                      icon: Icons.camera_alt_outlined,
-                                      color: Colors.blueGrey,
-                                      text: 'Camera',
-                                      onPress: () {
-                                        cameraPicker();
-                                      },
-                                    )
-                                  ],
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  thickness: 2,
-                                ),
-                              ],
-                            ),
-                          ).show();
+                          showPickOptions(context).show();
                         },
                         child: Text(
                           'Add Image',
@@ -384,7 +95,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ),
               ),
-              RegInfo(
+              TextFields(
                 icon: Icon(
                   Icons.edit,
 
@@ -403,7 +114,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 togglePassword: false,
                 inputType: TextInputType.name,
               ),
-              RegInfo(
+              TextFields(
                 icon: Icon(
                   Icons.edit,
 
@@ -422,7 +133,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 togglePassword: false,
                 inputType: TextInputType.name,
               ),
-              RegInfo(
+              TextFields(
                 icon: Icon(
                   Icons.email_outlined,
 
@@ -441,7 +152,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 togglePassword: false,
                 inputType: TextInputType.emailAddress,
               ),
-              RegInfo(
+              TextFields(
                 icon: Icon(
                   Icons.call,
 
@@ -460,7 +171,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 togglePassword: false,
                 inputType: TextInputType.phone,
               ),
-              RegInfo(
+              TextFields(
                 icon: Icon(
                   Icons.password,
 
@@ -483,7 +194,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   });
                 },
               ),
-              RegInfo(
+              TextFields(
                 icon: Icon(
                   Icons.password,
 
@@ -533,13 +244,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   left: 20,
                   right: 20,
                 ),
-                child: AllButtons(
+                child: Buttons(
                   buttonText: 'Register',
                   buttonColor: Colors.greenAccent,
                   buttonTextColor: Colors.black,
                   onTap: () {
                     setState(() {
-                      regCheck();
+                      registerUser();
                     });
                   },
                 ),
@@ -550,39 +261,233 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       ),
     );
   }
-}
 
-class ImgPickOp extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String text;
-  final Function() onPress;
+  bool regErrorCheck() {
+    if (img == null) {
+      errorImg = 'User Image Required.';
+    } else {
+      errorImg = null;
+    }
+    if (_firstName == null) {
+      errorFirstName = 'Name field should not be empty.';
+    } else {
+      errorFirstName = null;
+    }
+    if (_lastName == null) {
+      errorLastName = 'Name field should not be empty.';
+    } else {
+      errorLastName = null;
+    }
+    if (_email == null) {
+      errorEmail = 'Email required.';
+    } else {
+      errorEmail = null;
+    }
+    if (_mobile == null) {
+      errorMobile = 'Contact details required.';
+    } else {
+      errorMobile = null;
+    }
+    if (_password == null) {
+      errorPassword = 'Password required.';
+    } else {
+      if (_password!.length < 8) {
+        errorPassword = 'Password length must be minimum 8.';
+      } else {
+        errorPassword = null;
+      }
+    }
+    if (_confirmPassword == null) {
+      errorConfirmPassword = 'Confirm your password.';
+    } else {
+      if (_confirmPassword != _password) {
+        errorConfirmPassword = 'Password did not match';
+      } else if (errorImg == null &&
+          errorFirstName == null &&
+          errorLastName == null &&
+          errorEmail == null &&
+          errorMobile == null &&
+          errorPassword == null) {
+        errorConfirmPassword = null;
+        return true;
+      } else {
+        errorConfirmPassword = null;
+        return false;
+      }
+    }
+    return false;
+  }
 
-  ImgPickOp(
-      {required this.icon,
-      required this.color,
-      required this.text,
-      required this.onPress});
+  void registerUser() async {
+    if (regErrorCheck()) {
+      try {
+        setState(() {
+          loading = true;
+        });
+        UserCredential user = await _auth.createUserWithEmailAndPassword(
+            email: _email!, password: _password!);
+        var newUser = user.user;
+        if (newUser != null) {
+          await newUser.updateDisplayName(_firstName! + ' ' + _lastName!);
+          Reference imgReference =
+              firebaseStorage.ref().child('UserImages/$_email');
+          UploadTask uploadTask = imgReference.putFile(imgFile);
+          TaskSnapshot taskSnapshot = await uploadTask;
+          String url = await taskSnapshot.ref.getDownloadURL();
+          if (url != null) {
+            setState(() {
+              imgUrl = url;
+            });
+          }
+          print(imgUrl);
+          await newUser.updatePhotoURL(imgUrl);
+          User? refreshedUser = await refreshUser(newUser);
+          if (refreshedUser != null) {
+            setState(() {
+              newUser = refreshedUser;
+            });
+          }
+          if (newUser != null) {
+            _userInfo.collection("UserInfo").add({
+              'UserID': newUser!.uid,
+              'Image': newUser!.photoURL,
+              'Email': _email,
+              'First Name': _firstName,
+              'Last Name': _lastName,
+              'Mobile No': '+88' + _mobile!,
+              'Password': _password,
+            });
+          }
+          Navigator.popAndPushNamed(context, LoginScreen.id);
+          setState(() {
+            loading = false;
+          });
+        }
+      } on FirebaseException catch (e) {
+        print(e);
+        String errorMsg = e.toString(); //.substring(30);
+        userCreationError(errorMsg).show();
+      }
+    }
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPress,
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 30,
-          ),
-          Text(
-            text,
+  Alert userCreationError(String errorMsg) {
+    return Alert(
+      context: context,
+      title: 'Registration Unsuccessful!!',
+      desc: errorMsg,
+      closeIcon: Icon(
+        Icons.close,
+        color: Colors.black,
+      ),
+      closeFunction: () {
+        Navigator.pop(context);
+        setState(() {
+          loading = false;
+        });
+      },
+      buttons: [
+        DialogButton(
+          color: Colors.green,
+          width: 100,
+          height: 30,
+          onPressed: () {
+            Navigator.pop(context);
+            setState(() {
+              loading = false;
+            });
+          },
+          child: Text(
+            'Try Again',
             style: TextStyle(
-              fontFamily: 'Ubuntu',
-              color: color,
               fontSize: 20,
-              letterSpacing: 1.5,
+              fontFamily: "Ubuntu",
+              color: Colors.white,
             ),
+          ),
+        ),
+      ],
+      style: alertStyle,
+    );
+  }
+
+  Alert showPickOptions(BuildContext context) {
+    return Alert(
+      context: context,
+      title: 'Choose your option',
+      closeIcon: Icon(
+        Icons.close,
+        color: Colors.black,
+      ),
+      buttons: [
+        DialogButton(
+          color: Colors.blueAccent,
+          width: 100,
+          height: 30,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Row(
+            children: [
+              Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "Ubuntu",
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+      style: AlertStyle(
+        titleStyle: TextStyle(
+          fontFamily: 'Ubuntu',
+          fontSize: 20,
+        ),
+      ),
+      content: Column(
+        children: [
+          SizedBox(
+            height: 10,
+          ),
+          Divider(
+            color: Colors.black,
+            thickness: 2,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ImagePick(
+                icon: Icons.account_box_outlined,
+                color: Colors.green,
+                text: 'Gallery',
+                onPress: () async {
+                  setState(() async {
+                    imgFile = await imagePick.galleryPicker();
+                    img = Image.file(imgFile).image;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ImagePick(
+                icon: Icons.camera_alt_outlined,
+                color: Colors.blueGrey,
+                text: 'Camera',
+                onPress: () async {
+                  setState(() async {
+                    imgFile = await imagePick.cameraPicker();
+                    img = Image.file(imgFile).image;
+                  });
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          ),
+          Divider(
+            color: Colors.black,
+            thickness: 2,
           ),
         ],
       ),

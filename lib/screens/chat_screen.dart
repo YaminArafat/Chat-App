@@ -1,7 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, avoid_init_to_null, prefer_const_literals_to_create_immutables
-
-import 'dart:ui';
-
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, avoid_init_to_null, prefer_const_literals_to_create_immutables, avoid_print
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
   ImageProvider<Object>? curUserImg, userImg;
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   bool isDataRetrieved = false;
-  var userInfo;
+  late var userInfo = null;
   TextEditingController textEditingController = TextEditingController();
   void getCurrentUser() async {
     try {
@@ -104,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   dynamic getUserInfo(String email, String text) {
-    for (var user in userInfo.docs) {
+    for (var user in userInfo!.docs) {
       if (user.data()['Email'] == email) {
         // print(user.data()['Image']);
         return showUserText(user, text);

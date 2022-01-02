@@ -1,8 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_literals_to_create_immutables, deprecated_member_use
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:we_chat/components/all_buttons.dart';
+import 'package:we_chat/components/buttons.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/login_screen.dart';
 import 'package:we_chat/screens/registration_screen.dart';
@@ -135,7 +134,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 right: 20,
                 bottom: 10,
               ),
-              child: AllButtons(
+              child: Buttons(
                 buttonText: 'Log In',
                 buttonColor: Colors.lightBlueAccent,
                 buttonTextColor: Colors.white,
@@ -149,7 +148,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 left: 20,
                 right: 20,
               ),
-              child: AllButtons(
+              child: Buttons(
                 buttonText: 'Register',
                 buttonTextColor: Colors.black,
                 buttonColor: Colors.greenAccent,
