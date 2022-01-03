@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
@@ -25,6 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isDataRetrieved = false;
   late var userInfo = null;
   TextEditingController textEditingController = TextEditingController();
+  bool showTime = false;
 
   @override
   Widget build(BuildContext context) {
@@ -138,12 +140,14 @@ class _ChatScreenState extends State<ChatScreen> {
                             for (var message in snapshot.data!.docs) {
                               if (message.data()['sender'] ==
                                   loggedInUser.email) {
-                                chatHistory.add(
-                                    showCurUserText(message.data()['text']));
+                                chatHistory.add(showCurUserText(
+                                    message.data()['text'],
+                                    message.data()['createdAt']));
                               } else {
                                 chatHistory.add(getUserInfo(
                                     message.data()['sender'],
-                                    message.data()['text']));
+                                    message.data()['text'],
+                                    message.data()['createdAt']));
                               }
                             }
                             return Column(
@@ -332,54 +336,78 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Future<Widget?> loadMessage() async {
+  /*Future<Widget?> loadMessage() async {
     try {
       await for (var snapshot
           in firebaseFirestore.collection('messages').snapshots()) {
         for (var message in snapshot.docs) {
-          return getUserInfo(message.data()['sender'], message.data()['text']);
+          return getUserInfo(message.data()['sender'], message.data()['text'], message.data()['createdAt']);
         }
       }
     } catch (e) {
       print(e);
-      smallErrorMsg();
+      smallErrorMsg(e.toString());
     }
-  }
+  }*/
 
-  Widget showCurUserText(String text) {
+  Widget showCurUserText(String text, Timestamp createdAt) {
+    DateTime timeData = createdAt.toDate();
+    DateTime currDateTime = DateTime.now();
+    String timeOnly = DateFormat('hh:mm a').format(timeData);
+    String dateTime = DateFormat('dd/MM/yyyy, hh:mm a').format(timeData);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 5.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: inputTextColor,
-                  fontFamily: 'Ubuntu',
-                  fontSize: 20,
+          Center(
+            child: showTime
+                ? Text(currDateTime.difference(timeData).inDays == 1
+                    ? dateTime
+                    : timeOnly)
+                : null,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Flexible(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      showTime = !showTime;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.orange[50],
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Text(
+                        text,
+                        style: TextStyle(
+                          color: inputTextColor,
+                          fontFamily: 'Ubuntu',
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  dynamic getUserInfo(String email, String text) {
+  dynamic getUserInfo(String email, String text, Timestamp createdAt) {
     try {
       for (var user in userInfo!.docs) {
         if (user.data()['Email'] == email) {
           // print(user.data()['Image']);
-          return showUserText(user, text);
+          return showUserText(user, text, createdAt);
         }
       }
     } catch (e) {
@@ -388,35 +416,59 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget showUserText(var user, String text) {
+  Widget showUserText(var user, String text, Timestamp createdAt) {
+    DateTime timeData = createdAt.toDate();
+    DateTime currDateTime = DateTime.now();
+    String timeOnly = DateFormat('hh:mm a').format(timeData);
+    String dateTime = DateFormat('dd/MM/yyyy, hh:mm a').format(timeData);
     return Padding(
       padding: const EdgeInsets.only(bottom: 5.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+      child: Column(
         children: [
-          CircleAvatar(
-            radius: 12,
-            backgroundImage: NetworkImage(user.data()['Image']),
+          Center(
+            child: showTime
+                ? Text(currDateTime.difference(timeData).inDays == 1
+                    ? dateTime
+                    : timeOnly)
+                : null,
           ),
-          SizedBox(
-            width: 5,
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: inputTextColor,
-                  fontFamily: 'Ubuntu',
-                  fontSize: 20,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundImage: NetworkImage(user.data()['Image']),
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              Flexible(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      showTime = !showTime;
+                    });
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.cyan[50],
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Text(
+                        text,
+                        style: TextStyle(
+                          color: inputTextColor,
+                          fontFamily: 'Ubuntu',
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),

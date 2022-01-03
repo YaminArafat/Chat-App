@@ -22,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   var userInfo;
   late String _mobile;
   late String verifySmsCode;
+  // bool isDarkMode = backgroundColor == Colors.black ? true : false;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +64,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // backgroundColor: Colors.blue,
                           radius: 100,
                           backgroundImage: NetworkImage(userInfo.photoURL),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              left: 90.0,
+                              top: 180,
+                            ),
+                            child: Container(
+                              height: 20,
+                              width: 20,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.green,
+                                border: Border.all(
+                                  width: 1,
+                                  color: Colors.black12,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                 ),
                 SizedBox(
@@ -507,7 +526,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
           },
           style: TextStyle(
-            color: inputTextColor,
+            color: Colors.black,
             fontFamily: 'Ubuntu',
             fontSize: 20,
           ),
@@ -516,14 +535,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20.0),
               borderSide: BorderSide(
-                color: borderColor,
+                // color: borderColor,
                 width: 2,
               ),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20.0),
               borderSide: BorderSide(
-                color: borderColor,
+                color: Colors.black,
                 width: 2,
               ),
             ),
@@ -535,10 +554,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             hintStyle: TextStyle(
               fontFamily: 'Ubuntu',
               fontSize: 20,
-              color: hintTextColor,
+              color: Colors.black45,
             ),
           ),
-          cursorColor: cursorColor,
+          cursorColor: Colors.black,
         ),
       ),
       buttons: [
@@ -642,3 +661,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return phoneNum;
   }
 }
+
+/*actions: [
+          Switch(
+              value: isDarkMode,
+              onChanged: (value) {
+                setState(() {
+                  isDarkMode = value;
+                  if (isDarkMode) {
+                    setState(() {
+                      backgroundColor = Colors.black;
+                      inputTextColor = Colors.white;
+                      hintTextColor = Colors.white60;
+                      iconColor = Colors.white60;
+                      borderColor = Colors.white;
+                      cursorColor = Colors.white;
+                      imgPickTextColor = Colors.black;
+                    });
+                  } else {
+                    setState(() {
+                      backgroundColor = Colors.white;
+                      inputTextColor = Colors.black;
+                      hintTextColor = Colors.black45;
+                      iconColor = Colors.black45;
+                      borderColor = Colors.black;
+                      cursorColor = Colors.black;
+                      imgPickTextColor = Colors.white;
+                    });
+                  }
+                });
+              })
+        ],*/
