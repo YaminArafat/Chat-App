@@ -44,7 +44,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   var imgFile = null;
   FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   bool loading = false;
-  late ImagePick imagePick;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -427,17 +426,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: Row(
-            children: [
-              Text(
-                'Cancel',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontFamily: "Ubuntu",
-                  color: Colors.white,
-                ),
-              ),
-            ],
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: "Ubuntu",
+              color: Colors.white,
+            ),
           ),
         ),
       ],
@@ -464,10 +459,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 color: Colors.green,
                 text: 'Gallery',
                 onPress: () async {
-                  setState(() async {
-                    imgFile = await imagePick.galleryPicker();
-                    img = Image.file(imgFile).image;
-                  });
+                  imgFile = await ImagePick.galleryPicker();
+                  img = Image.file(imgFile).image;
+                  setState(() {});
                   Navigator.pop(context);
                 },
               ),
@@ -477,7 +471,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 text: 'Camera',
                 onPress: () async {
                   setState(() async {
-                    imgFile = await imagePick.cameraPicker();
+                    imgFile = await ImagePick.cameraPicker();
                     img = Image.file(imgFile).image;
                   });
                   Navigator.pop(context);

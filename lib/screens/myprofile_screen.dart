@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
-import 'package:we_chat/screens/login_screen.dart';
+import 'package:we_chat/screens/welcome_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   static String id = '/profile_screen';
@@ -402,7 +402,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Future.delayed(Duration(seconds: 1), () {
                           _auth.signOut();
                           Navigator.pushNamedAndRemoveUntil(
-                              context, LoginScreen.id, (route) => false);
+                              context, WelcomeScreen.id, (route) => false);
                         });
                       }),
                 ),
@@ -465,10 +465,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         smallErrorMsg(e.toString()).show();
       },
       codeSent: (String verificationId, int? resendToken) async {
-        manualOTP().show();
+        manualOTP(verificationId).show();
       },
       codeAutoRetrievalTimeout: (String verificationId) {
-        Alert(
+        /*Alert(
           context: context,
           title: 'Timed Out!!',
           desc: 'Timed out waiting for SMS.',
@@ -495,12 +495,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
           style: alertStyle,
-        ).show();
+        ).show();*/
       },
     );
   }
 
-  Alert manualOTP() {
+  Alert manualOTP(String verificationId) {
     return Alert(
       context: context,
       title: 'Verification OTP Sent',
@@ -565,24 +565,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: Colors.green,
           width: 100,
           height: 30,
-          onPressed: () {
+          onPressed: () async {
             try {
-              /*PhoneAuthCredential phoneAuthCredential =
-                PhoneAuthProvider.credential(
-                    verificationId: verificationId,
-                    smsCode: verifySmsCode);
-                // await _auth.signInWithCredential(phoneAuthCredential);
-                await userInfo.linkWithCredential(phoneAuthCredential);
-                // await linkPhoneWithEmail(phoneAuthCredential);*/
-              setState(() {
-                isVerified = true;
-              });
+              Navigator.pop(context);
+              PhoneAuthCredential phoneAuthCredential =
+                  PhoneAuthProvider.credential(
+                      verificationId: verificationId, smsCode: verifySmsCode);
+              // await _auth.signInWithCredential(phoneAuthCredential);
+              await userInfo.linkWithCredential(phoneAuthCredential);
+              User? refreshedUser = await refreshUser(userInfo);
+              if (refreshedUser != null) {
+                setState(() {
+                  isVerified = true;
+                  userInfo = refreshedUser;
+                });
+              }
             } catch (e) {
+              Navigator.pop(context);
               print(e);
               smallErrorMsg(e.toString()).show();
-            }
-            if (isVerified) {
-              Navigator.pop(context);
             }
           },
           child: Text(

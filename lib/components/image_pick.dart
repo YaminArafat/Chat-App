@@ -17,7 +17,7 @@ class ImagePick extends StatelessWidget {
       required this.text,
       required this.onPress});
 
-  dynamic galleryPicker() async {
+  static dynamic galleryPicker() async {
     try {
       final pickedImg =
           await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -30,7 +30,7 @@ class ImagePick extends StatelessWidget {
     }
   }
 
-  dynamic cameraPicker() async {
+  static dynamic cameraPicker() async {
     try {
       final pickedImg =
           await ImagePicker().pickImage(source: ImageSource.camera);

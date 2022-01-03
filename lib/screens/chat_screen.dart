@@ -8,8 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
-import 'package:we_chat/screens/login_screen.dart';
 import 'package:we_chat/screens/myprofile_screen.dart';
+import 'package:we_chat/screens/welcome_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   static String id = '/chat_screen';
@@ -95,7 +95,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     loading = false;
                   });
                   Navigator.pushNamedAndRemoveUntil(
-                      context, LoginScreen.id, (route) => false);
+                      context, WelcomeScreen.id, (route) => false);
                 });
               } else {
                 Navigator.pushNamed(context, ProfileScreen.id);
@@ -229,7 +229,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.only(top: 20.0, bottom: 20),
                 child: Row(
                   //mainAxisAlignment: MainAxisAlignment.,
                   children: [

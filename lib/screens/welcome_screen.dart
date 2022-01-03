@@ -83,7 +83,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   imgPickTextColor = Colors.white;
                   msgCardColorMe = Colors.orange[50];
                   msgCardColorU = Colors.cyan[50];
-                  msgTextColor = Colors.white;
+                  msgTextColor = Colors.black;
                   // lowerTextColor = Colors.blue;
                   /*activeSwitchColor = Colors.blue;
                   activeSwitchTrackColor = Colors.lightBlueAccent;

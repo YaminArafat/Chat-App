@@ -42,7 +42,7 @@ Color lowerTextColor = Colors.blue;
 Color imgPickTextColor = Colors.white;
 Color? msgCardColorMe = Colors.orange[50];
 Color? msgCardColorU = Colors.cyan[50];
-Color msgTextColor = Colors.white;
+Color msgTextColor = Colors.black;
 
 var alertDescStyle = TextStyle(
   color: Colors.black,
