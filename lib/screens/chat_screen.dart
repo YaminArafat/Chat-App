@@ -9,7 +9,7 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/login_screen.dart';
-import 'package:we_chat/screens/profile_screen.dart';
+import 'package:we_chat/screens/myprofile_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   static String id = '/chat_screen';
@@ -28,8 +28,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isDataRetrieved = false;
   late var userInfo = null;
   TextEditingController textEditingController = TextEditingController();
-  bool showTime = false;
-  ScrollController _scrollController = ScrollController();
+  // bool showTime = false;
+  ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +41,10 @@ class _ChatScreenState extends State<ChatScreen> {
           onPressed: () {
             try {
               Navigator.pushNamed(context, ProfileScreen.id);
+              /*Navigator.pushNamed(
+                context,
+                UserProfile.id,
+              );*/
             } catch (e) {
               print(e);
               logInError(context, e).show();
@@ -48,12 +52,11 @@ class _ChatScreenState extends State<ChatScreen> {
           },
           child: Row(
             children: [
-              Hero(
-                tag: 'profilePic',
+              SizedBox(
                 child: imgLoading
                     ? SizedBox(
-                        height: 7,
-                        width: 7,
+                        height: 5,
+                        width: 5,
                         child: CircularProgressIndicator.adaptive(
                           backgroundColor: Colors.white,
                         ),
@@ -82,10 +85,10 @@ class _ChatScreenState extends State<ChatScreen> {
             elevation: 10,
             tooltip: 'Menu',
             onSelected: (value) {
-              setState(() {
-                loading = true;
-              });
-              if (value == 1) {
+              if (value == 2) {
+                setState(() {
+                  loading = true;
+                });
                 Future.delayed(Duration(seconds: 1), () {
                   _auth.signOut();
                   setState(() {
@@ -94,9 +97,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   Navigator.pushNamedAndRemoveUntil(
                       context, LoginScreen.id, (route) => false);
                 });
+              } else {
+                Navigator.pushNamed(context, ProfileScreen.id);
               }
             },
-            color: Colors.orangeAccent,
+            color: Colors.white,
             shape: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide(width: 1, color: Colors.blueGrey),
@@ -104,13 +109,40 @@ class _ChatScreenState extends State<ChatScreen> {
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 1,
-                child: Text(
-                  'Log Out',
-                  style: TextStyle(
-                    fontFamily: 'Ubuntu',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.perm_identity,
+                      color: Colors.blueAccent,
+                    ),
+                    Text(
+                      'Profile',
+                      style: TextStyle(
+                        fontFamily: 'Ubuntu',
+                        // fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 2,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.subdirectory_arrow_left_outlined,
+                      color: Colors.redAccent,
+                    ),
+                    Text(
+                      'Log Out',
+                      style: TextStyle(
+                        fontFamily: 'Ubuntu',
+                        // fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -129,7 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Expanded(
                 child: ListView(
-                  controller: _scrollController,
+                  controller: scrollController,
                   reverse: true,
                   children: [
                     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -204,8 +236,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     Expanded(
                       child: TextField(
                         onTap: () {
-                          _scrollController.animateTo(
-                              _scrollController.position.minScrollExtent,
+                          scrollController.animateTo(
+                              scrollController.position.minScrollExtent,
                               duration: Duration(milliseconds: 300),
                               curve: Curves.easeOut);
                         },
@@ -259,8 +291,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       onPressed: () {
                         textEditingController.clear();
                         storeMessage();
-                        _scrollController.animateTo(
-                            _scrollController.position.minScrollExtent,
+                        scrollController.animateTo(
+                            scrollController.position.minScrollExtent,
                             duration: Duration(milliseconds: 300),
                             curve: Curves.easeOut);
                       },
@@ -368,31 +400,24 @@ class _ChatScreenState extends State<ChatScreen> {
     DateTime timeData = createdAt.toDate();
     DateTime currDateTime = DateTime.now();
     String timeOnly = DateFormat('hh:mm a').format(timeData);
-    String dateTime = DateFormat('dd/MM/yyyy, hh:mm a').format(timeData);
+    String dateTime = DateFormat('hh:mm a, dd/MM/yyyy').format(timeData);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Column(
         children: [
-          Center(
-            child: showTime
-                ? Text(currDateTime.difference(timeData).inDays == 1
-                    ? dateTime
-                    : timeOnly)
-                : null,
-          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Flexible(
                 child: GestureDetector(
-                  onTap: () {
+                  /*onTap: () {
                     setState(() {
                       showTime = !showTime;
                     });
-                  },
+                  },*/
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.orange[50],
+                      color: msgCardColorMe,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Padding(
@@ -400,7 +425,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Text(
                         text,
                         style: TextStyle(
-                          color: inputTextColor,
+                          color: msgTextColor,
                           fontFamily: 'Ubuntu',
                           fontSize: 20,
                         ),
@@ -410,6 +435,22 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 5.0),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                currDateTime.difference(timeData).inDays == 1
+                    ? dateTime
+                    : timeOnly,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 10,
+                  fontFamily: 'Ubuntu',
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -434,18 +475,11 @@ class _ChatScreenState extends State<ChatScreen> {
     DateTime timeData = createdAt.toDate();
     DateTime currDateTime = DateTime.now();
     String timeOnly = DateFormat('hh:mm a').format(timeData);
-    String dateTime = DateFormat('dd/MM/yyyy, hh:mm a').format(timeData);
+    String dateTime = DateFormat('hh:mm a, dd/MM/yyyy').format(timeData);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0),
       child: Column(
         children: [
-          Center(
-            child: showTime
-                ? Text(currDateTime.difference(timeData).inDays == 1
-                    ? dateTime
-                    : timeOnly)
-                : null,
-          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -458,14 +492,14 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               Flexible(
                 child: GestureDetector(
-                  onTap: () {
+                  /*onTap: () {
                     setState(() {
                       showTime = !showTime;
                     });
-                  },
+                  },*/
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.cyan[50],
+                      color: msgCardColorU,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Padding(
@@ -473,7 +507,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Text(
                         text,
                         style: TextStyle(
-                          color: inputTextColor,
+                          color: msgTextColor,
                           fontFamily: 'Ubuntu',
                           fontSize: 20,
                         ),
@@ -483,6 +517,22 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 32.0),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                currDateTime.difference(timeData).inDays == 1
+                    ? dateTime
+                    : timeOnly,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 10,
+                  fontFamily: 'Ubuntu',
+                ),
+              ),
+            ),
           ),
         ],
       ),

@@ -9,7 +9,7 @@ import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  static String id = 'Profile_Screen';
+  static String id = '/profile_screen';
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }

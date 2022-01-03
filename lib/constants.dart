@@ -40,7 +40,9 @@ Color borderColor = Colors.black;
 Color cursorColor = Colors.black;
 Color lowerTextColor = Colors.blue;
 Color imgPickTextColor = Colors.white;
-Color msgCardColor = Colors.grey;
+Color? msgCardColorMe = Colors.orange[50];
+Color? msgCardColorU = Colors.cyan[50];
+Color msgTextColor = Colors.white;
 
 var alertDescStyle = TextStyle(
   color: Colors.black,
