@@ -1,4 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, avoid_init_to_null, prefer_const_literals_to_create_immutables, avoid_print
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   late var userInfo = null;
   TextEditingController textEditingController = TextEditingController();
   bool showTime = false;
+  ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +122,6 @@ class _ChatScreenState extends State<ChatScreen> {
         inAsyncCall: loading,
         child: Padding(
           padding: EdgeInsets.only(
-            top: 24,
             left: 10,
             right: 10,
           ),
@@ -127,6 +129,8 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Expanded(
                 child: ListView(
+                  controller: _scrollController,
+                  reverse: true,
                   children: [
                     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                       stream: firebaseFirestore
@@ -199,6 +203,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     Expanded(
                       child: TextField(
+                        onTap: () {
+                          _scrollController.animateTo(
+                              _scrollController.position.minScrollExtent,
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeOut);
+                        },
                         controller: textEditingController,
                         onChanged: (value) {
                           if (value.isNotEmpty) {
@@ -249,6 +259,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       onPressed: () {
                         textEditingController.clear();
                         storeMessage();
+                        _scrollController.animateTo(
+                            _scrollController.position.minScrollExtent,
+                            duration: Duration(milliseconds: 300),
+                            curve: Curves.easeOut);
                       },
                       icon: Icon(
                         Icons.send,
@@ -422,7 +436,7 @@ class _ChatScreenState extends State<ChatScreen> {
     String timeOnly = DateFormat('hh:mm a').format(timeData);
     String dateTime = DateFormat('dd/MM/yyyy, hh:mm a').format(timeData);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 5.0),
+      padding: const EdgeInsets.only(bottom: 10.0),
       child: Column(
         children: [
           Center(
