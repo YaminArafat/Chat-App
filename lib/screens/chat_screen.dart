@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, avoid_init_to_null, prefer_const_literals_to_create_immutables, avoid_print
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, avoid_init_to_null, prefer_const_literals_to_create_immutables, avoid_print, must_be_immutable
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,10 +9,13 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
 import 'package:we_chat/screens/myprofile_screen.dart';
+import 'package:we_chat/screens/user_profile_screen.dart';
 import 'package:we_chat/screens/welcome_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   static String id = '/chat_screen';
+  late String conversationData;
+  ChatScreen({required this.conversationData});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -23,6 +26,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool loading = false;
   bool imgLoading = true;
   String? curUserText;
+  String? name, email, phone, conversationId;
+  var img = null;
   ImageProvider<Object>? curUserImg, userImg;
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   late var userInfo = null;
@@ -38,15 +43,15 @@ class _ChatScreenState extends State<ChatScreen> {
         automaticallyImplyLeading: false,
         title: TextButton(
           onPressed: () {
-            try {
-              Navigator.pushNamed(context, ProfileScreen.id);
-              /*Navigator.pushNamed(
-                context,
-                UserProfile.id,
-              );*/
-            } catch (e) {
-              print(e);
-              logInError(context, e).show();
+            if (email != null) {
+              try {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return UserProfile(userData: email!);
+                }));
+              } catch (e) {
+                print(e);
+                smallErrorMsg(e.toString());
+              }
             }
           },
           child: Row(
@@ -62,14 +67,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                     : CircleAvatar(
                         radius: 15,
-                        backgroundImage: curUserImg,
+                        backgroundImage: img,
                       ),
               ),
               SizedBox(
                 width: 5,
               ),
               Text(
-                loggedInUser.displayName,
+                name ?? 'Loading...',
                 style: TextStyle(
                   fontFamily: 'Ubuntu',
                   fontSize: 20,
@@ -115,7 +120,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: Colors.blueAccent,
                     ),
                     Text(
-                      'Profile',
+                      'My Profile',
                       style: TextStyle(
                         fontFamily: 'Ubuntu',
                         // fontWeight: FontWeight.bold,
@@ -165,7 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                       stream: firebaseFirestore
-                          .collection('messages')
+                          .collection('$conversationId')
                           .orderBy('createdAt', descending: false)
                           .snapshots(),
                       builder: (context, snapshot) {
@@ -179,8 +184,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                     message.data()['text'],
                                     message.data()['createdAt']));
                               } else {
-                                chatHistory.add(getUserInfo(
+                                /*chatHistory.add(getUserInfo(
                                     message.data()['sender'],
+                                    message.data()['text'],
+                                    message.data()['createdAt']));*/
+                                chatHistory.add(showUserText(
+                                    email,
                                     message.data()['text'],
                                     message.data()['createdAt']));
                               }
@@ -311,18 +320,38 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void getCurrentUser() async {
+  void getCurrentUser(String _email) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
         loggedInUser = user;
         curUserImg = NetworkImage(loggedInUser.photoURL);
-        Future.delayed(Duration(seconds: 2), () {
+        /*Future.delayed(Duration(seconds: 2), () {
           setState(() {
             imgLoading = false;
           });
-        });
+        });*/
         userInfo = await firebaseFirestore.collection("UserInfo").get();
+        List<String> chatId = [
+          loggedInUser.email,
+          _email,
+        ];
+        chatId.sort();
+        for (var user in userInfo!.docs) {
+          if (user.data()['Email'] == _email) {
+            // print(user.data()['Image']);
+            setState(() {
+              name = user.data()['First Name'] + ' ' + user.data()['Last Name'];
+              email = user.data()['Email'];
+              img = NetworkImage(user.data()['Image']);
+              phone = user.data()['Mobile No'];
+              imgLoading = false;
+              conversationId = chatId[0] + chatId[1];
+            });
+            firebaseFirestore.collection('$conversationId}').get();
+            break;
+          }
+        }
         print(loggedInUser);
       }
     } catch (e) {
@@ -363,12 +392,13 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     modeCheck();
-    getCurrentUser();
+    getCurrentUser(widget.conversationData);
+    // getUserInfo(widget.conversationData);
   }
 
   void storeMessage() {
     try {
-      firebaseFirestore.collection("messages").add({
+      firebaseFirestore.collection("$conversationId").add({
         'sender': loggedInUser.email,
         'text': curUserText,
         'createdAt': Timestamp.now(),
@@ -513,7 +543,7 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               CircleAvatar(
                 radius: 12,
-                backgroundImage: NetworkImage(user.data()['Image']),
+                backgroundImage: img,
               ),
               SizedBox(
                 width: 5,

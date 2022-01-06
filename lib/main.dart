@@ -2,7 +2,6 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:we_chat/screens/chat_screen.dart';
 import 'package:we_chat/screens/home_screen.dart';
 import 'package:we_chat/screens/login_screen.dart';
 import 'package:we_chat/screens/myprofile_screen.dart';
@@ -25,9 +24,10 @@ class MyApp extends StatelessWidget {
         WelcomeScreen.id: (context) => WelcomeScreen(),
         LoginScreen.id: (context) => LoginScreen(),
         RegistrationScreen.id: (context) => RegistrationScreen(),
-        ChatScreen.id: (context) => ChatScreen(),
+        //ChatScreen.id: (context) => ChatScreen(conversationData: '',),
         ProfileScreen.id: (context) => ProfileScreen(),
         HomeScreen.id: (context) => HomeScreen(),
+        // UserProfile.id:(context)=>UserProfile(userData: ''),
       },
     );
   }

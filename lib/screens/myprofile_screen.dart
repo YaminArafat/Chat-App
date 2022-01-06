@@ -86,8 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Center(
             child: Column(
               children: [
-                Hero(
-                  tag: 'profilePic',
+                SizedBox(
                   child: imgLoading
                       ? SizedBox(
                           height: 50,
