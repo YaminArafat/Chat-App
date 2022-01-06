@@ -7,7 +7,7 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/components/buttons.dart';
 import 'package:we_chat/components/textfields.dart';
 import 'package:we_chat/constants.dart';
-import 'package:we_chat/screens/chat_screen.dart';
+import 'package:we_chat/screens/home_screen.dart';
 import 'package:we_chat/screens/registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -171,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final loginUser = await _auth.signInWithEmailAndPassword(
             email: _email, password: _password);
         if (loginUser != null) {
-          Navigator.pushNamed(context, ChatScreen.id);
+          Navigator.pushNamed(context, HomeScreen.id);
           setState(() {
             loading = false;
           });

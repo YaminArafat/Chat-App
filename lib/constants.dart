@@ -44,6 +44,34 @@ Color? msgCardColorMe = Colors.orange[50];
 Color? msgCardColorU = Colors.cyan[50];
 Color msgTextColor = Colors.black;
 
+bool isDarkMode = false;
+
+void modeCheck() {
+  if (isDarkMode) {
+    backgroundColor = Colors.black;
+    inputTextColor = Colors.white;
+    hintTextColor = Colors.white60;
+    iconColor = Colors.white60;
+    borderColor = Colors.white;
+    cursorColor = Colors.white;
+    imgPickTextColor = Colors.black;
+    msgCardColorMe = Colors.green;
+    msgCardColorU = Colors.deepPurpleAccent;
+    msgTextColor = Colors.white;
+  } else {
+    backgroundColor = Colors.white;
+    inputTextColor = Colors.black;
+    hintTextColor = Colors.black45;
+    iconColor = Colors.black45;
+    borderColor = Colors.black;
+    cursorColor = Colors.black;
+    imgPickTextColor = Colors.white;
+    msgCardColorMe = Colors.orange[50];
+    msgCardColorU = Colors.cyan[50];
+    msgTextColor = Colors.black;
+  }
+}
+
 var alertDescStyle = TextStyle(
   color: Colors.black,
   fontSize: 20,

@@ -14,7 +14,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen>
     with TickerProviderStateMixin {
-  bool isDarkMode = false;
+  // bool isDarkMode = false;
   late AnimationController animationControllerLogo;
   late Animation curvedAnimation;
   @override

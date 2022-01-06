@@ -45,6 +45,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   bool loading = false;
   @override
+  void initState() {
+    super.initState();
+    modeCheck();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       ///
@@ -356,6 +362,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               'Mobile No': '+88' + _mobile!,
               'Password': _password,
             });
+            await FirebaseFirestore.instance.collection('$_email').add({
+              'Friend Email': null,
+            });
           }
           Navigator.popAndPushNamed(context, LoginScreen.id);
           setState(() {
@@ -486,5 +495,33 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         ],
       ),
     );
+  }
+
+  void modeCheck() {
+    setState(() {
+      if (isDarkMode) {
+        backgroundColor = Colors.black;
+        inputTextColor = Colors.white;
+        hintTextColor = Colors.white60;
+        iconColor = Colors.white60;
+        borderColor = Colors.white;
+        cursorColor = Colors.white;
+        imgPickTextColor = Colors.black;
+        msgCardColorMe = Colors.green;
+        msgCardColorU = Colors.deepPurpleAccent;
+        msgTextColor = Colors.white;
+      } else {
+        backgroundColor = Colors.white;
+        inputTextColor = Colors.black;
+        hintTextColor = Colors.black45;
+        iconColor = Colors.black45;
+        borderColor = Colors.black;
+        cursorColor = Colors.black;
+        imgPickTextColor = Colors.white;
+        msgCardColorMe = Colors.orange[50];
+        msgCardColorU = Colors.cyan[50];
+        msgTextColor = Colors.black;
+      }
+    });
   }
 }

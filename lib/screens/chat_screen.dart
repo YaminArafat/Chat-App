@@ -25,7 +25,6 @@ class _ChatScreenState extends State<ChatScreen> {
   String? curUserText;
   ImageProvider<Object>? curUserImg, userImg;
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-  bool isDataRetrieved = false;
   late var userInfo = null;
   TextEditingController textEditingController = TextEditingController();
   // bool showTime = false;
@@ -332,9 +331,38 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void modeCheck() {
+    setState(() {
+      if (isDarkMode) {
+        backgroundColor = Colors.black;
+        inputTextColor = Colors.white;
+        hintTextColor = Colors.white60;
+        iconColor = Colors.white60;
+        borderColor = Colors.white;
+        cursorColor = Colors.white;
+        imgPickTextColor = Colors.black;
+        msgCardColorMe = Colors.green;
+        msgCardColorU = Colors.deepPurpleAccent;
+        msgTextColor = Colors.white;
+      } else {
+        backgroundColor = Colors.white;
+        inputTextColor = Colors.black;
+        hintTextColor = Colors.black45;
+        iconColor = Colors.black45;
+        borderColor = Colors.black;
+        cursorColor = Colors.black;
+        imgPickTextColor = Colors.white;
+        msgCardColorMe = Colors.orange[50];
+        msgCardColorU = Colors.cyan[50];
+        msgTextColor = Colors.black;
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    modeCheck();
     getCurrentUser();
   }
 
@@ -549,8 +577,8 @@ class _ChatScreenState extends State<ChatScreen> {
         color: Colors.black,
       ),
       closeFunction: () {
-        Navigator.pop(context);
-        Navigator.pop(context);
+        Navigator.pushNamedAndRemoveUntil(
+            context, WelcomeScreen.id, (route) => false);
       },
       buttons: [
         DialogButton(
@@ -558,8 +586,8 @@ class _ChatScreenState extends State<ChatScreen> {
           width: 200,
           height: 30,
           onPressed: () {
-            Navigator.pop(context);
-            Navigator.pop(context);
+            Navigator.pushNamedAndRemoveUntil(
+                context, WelcomeScreen.id, (route) => false);
           },
           child: Text(
             'Log Out & Try Again',

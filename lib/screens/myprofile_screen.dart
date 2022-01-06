@@ -38,6 +38,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          Switch(
+              value: isDarkMode,
+              onChanged: (value) {
+                setState(() {
+                  isDarkMode = value;
+                  if (isDarkMode) {
+                    setState(() {
+                      backgroundColor = Colors.black;
+                      inputTextColor = Colors.white;
+                      hintTextColor = Colors.white60;
+                      iconColor = Colors.white60;
+                      borderColor = Colors.white;
+                      cursorColor = Colors.white;
+                      imgPickTextColor = Colors.black;
+                      msgCardColorMe = Colors.green;
+                      msgCardColorU = Colors.deepPurpleAccent;
+                      msgTextColor = Colors.white;
+                    });
+                  } else {
+                    setState(() {
+                      backgroundColor = Colors.white;
+                      inputTextColor = Colors.black;
+                      hintTextColor = Colors.black45;
+                      iconColor = Colors.black45;
+                      borderColor = Colors.black;
+                      cursorColor = Colors.black;
+                      imgPickTextColor = Colors.white;
+                      msgCardColorMe = Colors.orange[50];
+                      msgCardColorU = Colors.cyan[50];
+                      msgTextColor = Colors.black;
+                    });
+                  }
+                });
+              })
+        ],
       ),
       body: ModalProgressHUD(
         inAsyncCall: loading,

@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:we_chat/screens/chat_screen.dart';
+import 'package:we_chat/screens/home_screen.dart';
 import 'package:we_chat/screens/login_screen.dart';
 import 'package:we_chat/screens/myprofile_screen.dart';
 import 'package:we_chat/screens/registration_screen.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         RegistrationScreen.id: (context) => RegistrationScreen(),
         ChatScreen.id: (context) => ChatScreen(),
         ProfileScreen.id: (context) => ProfileScreen(),
+        HomeScreen.id: (context) => HomeScreen(),
       },
     );
   }
