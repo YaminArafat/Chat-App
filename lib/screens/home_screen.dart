@@ -1,8 +1,9 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_literals_to_create_immutables, avoid_print, prefer_typing_uninitialized_variables, unused_local_variable
+// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_literals_to_create_immutables, avoid_print, prefer_typing_uninitialized_variables, unused_local_variable, unnecessary_string_interpolations
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
@@ -33,8 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icon(Icons.people_alt), label: 'Active Friends'),
     BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Find Friends'),
   ];
-  late var curStream;
-  late var conversations;
   late var curUserFriends;
   List<Widget> curItems = [];
   List<Widget> messages = [
@@ -48,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
-  List<Widget> removeIfFriend(String email, List<Widget> findFriends) {
+  /*List<Widget> removeIfFriend(String email, List<Widget> findFriends) {
     for (var friend in curUserFriends!.docs) {
       if (email == friend.data()['Friend Email']) {
         findFriends.removeWhere((element) => element.key == Key(email));
@@ -56,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     return findFriends;
-  }
+  }*/
 
   Column findFriendsStream() {
     return Column(
@@ -82,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: firebaseFirestore
                       .collection('${loggedInUser.email}')
-                      //.orderBy('First Name', descending: false)
+                      .orderBy('Friend Name', descending: false)
                       .snapshots(),
                   builder: (context, snapshot) {
                     List<Widget> friends = [];
@@ -476,7 +475,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: firebaseFirestore
                       .collection('${loggedInUser.email}')
-                      //.orderBy('First Name', descending: false)
+                      .orderBy('Friend Name', descending: false)
                       .snapshots(),
                   builder: (context, snapshot) {
                     List<Widget> friends = [];
@@ -637,6 +636,127 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<bool> check(String id) async {
+    var snapshot = await firebaseFirestore
+        .collection("$id")
+        .orderBy('createdAt', descending: false)
+        .get();
+    if (snapshot.docs.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  dynamic conversations() {
+    for (var friend in curUserFriends.docs) {
+      List<String> chatId = [
+        friend.data()['Friend Email'],
+        loggedInUser.email,
+      ];
+      chatId.sort();
+      String conversationId = chatId[0] + chatId[1];
+      return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: firebaseFirestore
+            .collection("$conversationId")
+            .orderBy('createdAt', descending: false)
+            .snapshots(),
+        builder: (context, snapshot) {
+          List<Widget> conversations = [];
+          if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+            DateTime timeData = snapshot.data!.docs.last['createdAt'].toDate();
+            DateTime currDateTime = DateTime.now();
+            String timeOnly = DateFormat('hh:mm a').format(timeData);
+            String dateTime =
+                DateFormat('hh:mm a, dd/MM/yyyy').format(timeData);
+            conversations.add(Padding(
+              key: Key(friend.data()['Friend Email']),
+              padding: const EdgeInsets.all(10.0),
+              child: GestureDetector(
+                onTap: () {
+                  ///
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return ChatScreen(
+                      conversationData: friend.data()['Friend Email'],
+                    );
+                  }));
+                },
+                child: Row(
+                  //crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundImage:
+                          NetworkImage(friend.data()['Friend Image']),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            friend.data()['Friend Name'],
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontFamily: 'Ubuntu',
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orangeAccent,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                snapshot.data!.docs.last['text'],
+                                softWrap: true,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 15,
+                                  fontFamily: 'Ubuntu',
+                                ),
+                              ),
+                              Text(
+                                currDateTime.difference(timeData).inDays == 1
+                                    ? dateTime
+                                    : timeOnly,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 10,
+                                  fontFamily: 'Ubuntu',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ));
+            return Column(
+              children: conversations,
+            );
+          } else {
+            return Center(
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: CircularProgressIndicator.adaptive(),
+              ),
+            );
+          }
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -759,17 +879,14 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) {
           if (index == 0) {
             setState(() {
-              //curStream = conversations;
               curIndex = index;
             });
           } else if (index == 1) {
             setState(() {
-              //curStream = activeFriendsStream;
               curIndex = index;
             });
           } else {
             setState(() {
-              curStream = findFriendsStream;
               curIndex = index;
             });
           }
@@ -789,7 +906,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? findFriendsStream()
               : (curIndex == 1)
                   ? activeFriendsStream()
-                  : null,
+                  : conversations(),
         ),
       ),
     );

@@ -55,6 +55,12 @@ class _UserProfileState extends State<UserProfile> {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
+        /*leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),*/
         title: Text(
           'Profile Information',
           style: TextStyle(

@@ -43,6 +43,11 @@ class _ChatScreenState extends State<ChatScreen> {
         automaticallyImplyLeading: false,
         title: TextButton(
           onPressed: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus &&
+                currentFocus.focusedChild != null) {
+              currentFocus.focusedChild!.unfocus();
+            }
             if (email != null) {
               try {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -156,164 +161,174 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: ModalProgressHUD(
         inAsyncCall: loading,
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: 10,
-            right: 10,
-          ),
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  reverse: true,
-                  children: [
-                    StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                      stream: firebaseFirestore
-                          .collection('$conversationId')
-                          .orderBy('createdAt', descending: false)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        List<Widget> chatHistory = [];
-                        if (snapshot.hasData) {
-                          try {
-                            for (var message in snapshot.data!.docs) {
-                              if (message.data()['sender'] ==
-                                  loggedInUser.email) {
-                                chatHistory.add(showCurUserText(
-                                    message.data()['text'],
-                                    message.data()['createdAt']));
-                              } else {
-                                /*chatHistory.add(getUserInfo(
-                                    message.data()['sender'],
-                                    message.data()['text'],
-                                    message.data()['createdAt']));*/
-                                chatHistory.add(showUserText(
-                                    email,
-                                    message.data()['text'],
-                                    message.data()['createdAt']));
+        child: GestureDetector(
+          onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus &&
+                currentFocus.focusedChild != null) {
+              currentFocus.focusedChild!.unfocus();
+            }
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 10,
+              right: 10,
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    controller: scrollController,
+                    reverse: true,
+                    children: [
+                      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: firebaseFirestore
+                            .collection('$conversationId')
+                            .orderBy('createdAt', descending: false)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          List<Widget> chatHistory = [];
+                          if (snapshot.hasData) {
+                            try {
+                              for (var message in snapshot.data!.docs) {
+                                if (message.data()['sender'] ==
+                                    loggedInUser.email) {
+                                  chatHistory.add(showCurUserText(
+                                      message.data()['text'],
+                                      message.data()['createdAt']));
+                                } else {
+                                  /*chatHistory.add(getUserInfo(
+                                      message.data()['sender'],
+                                      message.data()['text'],
+                                      message.data()['createdAt']));*/
+                                  chatHistory.add(showUserText(
+                                      email,
+                                      message.data()['text'],
+                                      message.data()['createdAt']));
+                                }
                               }
+                              return Column(
+                                children: chatHistory,
+                              );
+                            } catch (e) {
+                              print(e);
+                              return Center(
+                                child: SizedBox(
+                                  height: 50,
+                                  width: 50,
+                                  child: CircularProgressIndicator.adaptive(),
+                                ),
+                              );
                             }
-                            return Column(
-                              children: chatHistory,
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'No Data Found!',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 30,
+                                  fontFamily: 'Ubuntu',
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
                             );
-                          } catch (e) {
-                            print(e);
+                          } else {
                             return Center(
                               child: SizedBox(
                                 height: 50,
                                 width: 50,
-                                child: CircularProgressIndicator.adaptive(),
+                                child: CircularProgressIndicator.adaptive(
+                                  backgroundColor: Colors.blue,
+                                ),
                               ),
                             );
                           }
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'No Data Found!',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 30,
-                                fontFamily: 'Ubuntu',
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                          );
-                        } else {
-                          return Center(
-                            child: SizedBox(
-                              height: 50,
-                              width: 50,
-                              child: CircularProgressIndicator.adaptive(
-                                backgroundColor: Colors.blue,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0, bottom: 20),
-                child: Row(
-                  //mainAxisAlignment: MainAxisAlignment.,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        onTap: () {
+                Padding(
+                  padding: const EdgeInsets.only(top: 20.0, bottom: 20),
+                  child: Row(
+                    //mainAxisAlignment: MainAxisAlignment.,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          onTap: () {
+                            scrollController.animateTo(
+                                scrollController.position.minScrollExtent,
+                                duration: Duration(milliseconds: 300),
+                                curve: Curves.easeOut);
+                          },
+                          controller: textEditingController,
+                          onChanged: (value) {
+                            if (value.isNotEmpty) {
+                              setState(() {
+                                curUserText = value;
+                              });
+                            }
+                          },
+                          style: TextStyle(
+                            color: inputTextColor,
+                            fontFamily: 'Ubuntu',
+                            fontSize: 15,
+                          ),
+                          cursorHeight: 20,
+                          decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: 2,
+                              ),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                              borderSide: BorderSide(
+                                color: borderColor,
+                                width: 2,
+                              ),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.message_outlined,
+                              color: iconColor,
+                            ),
+                            hintText: 'Enter Message Here',
+                            hintStyle: TextStyle(
+                              fontFamily: 'Ubuntu',
+                              fontSize: 15,
+                              color: hintTextColor,
+                            ),
+                          ),
+                          cursorColor: cursorColor,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          textEditingController.clear();
+                          textEditingController.clearComposing();
+                          storeMessage();
                           scrollController.animateTo(
                               scrollController.position.minScrollExtent,
                               duration: Duration(milliseconds: 300),
                               curve: Curves.easeOut);
                         },
-                        controller: textEditingController,
-                        onChanged: (value) {
-                          if (value.isNotEmpty) {
-                            setState(() {
-                              curUserText = value;
-                            });
-                          }
-                        },
-                        style: TextStyle(
-                          color: inputTextColor,
-                          fontFamily: 'Ubuntu',
-                          fontSize: 15,
+                        icon: Icon(
+                          Icons.send,
+                          color: Colors.blue,
+                          size: 35,
                         ),
-                        cursorHeight: 20,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                            borderSide: BorderSide(
-                              color: borderColor,
-                              width: 2,
-                            ),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                            borderSide: BorderSide(
-                              color: borderColor,
-                              width: 2,
-                            ),
-                          ),
-                          prefixIcon: Icon(
-                            Icons.message_outlined,
-                            color: iconColor,
-                          ),
-                          hintText: 'Enter Message Here',
-                          hintStyle: TextStyle(
-                            fontFamily: 'Ubuntu',
-                            fontSize: 15,
-                            color: hintTextColor,
-                          ),
-                        ),
-                        cursorColor: cursorColor,
                       ),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        textEditingController.clear();
-                        storeMessage();
-                        scrollController.animateTo(
-                            scrollController.position.minScrollExtent,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeOut);
-                      },
-                      icon: Icon(
-                        Icons.send,
-                        color: Colors.blue,
-                        size: 35,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
