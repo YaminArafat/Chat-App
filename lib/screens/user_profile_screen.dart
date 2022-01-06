@@ -1,13 +1,15 @@
-/*
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_literals_to_create_immutables, prefer_const_constructors_in_immutables, must_be_immutable, avoid_print, avoid_init_to_null, prefer_typing_uninitialized_variables
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:we_chat/constants.dart';
 
 class UserProfile extends StatefulWidget {
   static String id = '/user_profile_screen';
-
+  late String userData;
+  UserProfile({required this.userData});
   @override
   _UserProfileState createState() => _UserProfileState();
 }
@@ -15,6 +17,39 @@ class UserProfile extends StatefulWidget {
 class _UserProfileState extends State<UserProfile> {
   bool loading = false;
   bool imgLoading = true;
+  var userInfo;
+  String? name, email, phone;
+  var img = null;
+  FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  void getUserInfo(String _email) async {
+    try {
+      userInfo = await firebaseFirestore.collection('UserInfo').get();
+      for (var user in userInfo!.docs) {
+        if (user.data()['Email'] == _email) {
+          // print(user.data()['Image']);
+          setState(() {
+            name = user.data()['First Name'] + ' ' + user.data()['Last Name'];
+            email = user.data()['Email'];
+            img = NetworkImage(user.data()['Image']);
+            phone = user.data()['Mobile No'];
+            imgLoading = false;
+          });
+          break;
+        }
+      }
+    } catch (e) {
+      print(e);
+      smallErrorMsg(e.toString());
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    print(widget.userData);
+    getUserInfo(widget.userData);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,8 +76,7 @@ class _UserProfileState extends State<UserProfile> {
           child: Center(
             child: Column(
               children: [
-                Hero(
-                  tag: 'profilePic',
+                SizedBox(
                   child: imgLoading
                       ? SizedBox(
                           height: 50,
@@ -54,7 +88,7 @@ class _UserProfileState extends State<UserProfile> {
                       : CircleAvatar(
                           // backgroundColor: Colors.blue,
                           radius: 100,
-                          backgroundImage: NetworkImage(userInfo.photoURL),
+                          backgroundImage: img,
                           child: Padding(
                             padding: const EdgeInsets.only(
                               left: 90.0,
@@ -79,7 +113,7 @@ class _UserProfileState extends State<UserProfile> {
                   height: 20,
                 ),
                 Text(
-                  userInfo.displayName,
+                  name ?? 'Loading...',
                   style: TextStyle(
                     fontFamily: 'Ubuntu',
                     fontWeight: FontWeight.bold,
@@ -103,109 +137,12 @@ class _UserProfileState extends State<UserProfile> {
                       width: 5,
                     ),
                     Text(
-                      userInfo.email,
+                      email ?? '',
                       style: TextStyle(
                         fontFamily: 'Ubuntu',
                         color: Colors.blue,
                         fontSize: 22,
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      userInfo.emailVerified
-                          ? Icons.verified_user_rounded
-                          : Icons.cancel,
-                      color: userInfo.emailVerified
-                          ? Colors.greenAccent
-                          : Colors.red,
-                      size: 17,
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text(
-                      userInfo.emailVerified
-                          ? 'E-mail verified'
-                          : 'E-mail not verified',
-                      style: TextStyle(
-                        fontFamily: 'Ubuntu',
-                        color: userInfo.emailVerified
-                            ? Colors.greenAccent
-                            : Colors.red,
-                        fontSize: 15,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(0.0),
-                      child: (userInfo.emailVerified)
-                          ? null
-                          : Container(
-                              height: 30,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.green,
-                              ),
-                              child: TextButton(
-                                  // color: Colors.green,
-                                  child: Text(
-                                    'Verify Now',
-                                    style: TextStyle(
-                                      fontFamily: 'Ubuntu',
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                  onPressed: () async {
-                                    if (!userInfo.emailVerified) {
-                                      try {
-                                        await userInfo.sendEmailVerification();
-                                      } catch (e) {
-                                        print(e);
-                                        smallErrorMsg(e.toString()).show();
-                                      }
-                                      Alert(
-                                        context: context,
-                                        title: 'Verification E-mail Sent',
-                                        desc:
-                                            'Check your e-mail & Follow the given link to verify your e-mail.\nThen click the refresh button to get the verification icon',
-                                        closeIcon: Icon(
-                                          Icons.close,
-                                          color: Colors.black,
-                                        ),
-                                        buttons: [
-                                          DialogButton(
-                                            color: Colors.green,
-                                            width: 100,
-                                            height: 30,
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text(
-                                              'Done',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontFamily: "Ubuntu",
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                        style: alertStyle2,
-                                      ).show();
-                                    }
-                                  }),
-                            ),
                     ),
                   ],
                 ),
@@ -224,147 +161,15 @@ class _UserProfileState extends State<UserProfile> {
                     SizedBox(
                       width: 5,
                     ),
-                    SizedBox(
-                      child: userInfo.phoneNumber != null
-                          ? Text(
-                              userInfo.phoneNumber,
-                              style: TextStyle(
-                                fontFamily: 'Ubuntu',
-                                color: Colors.blue,
-                                fontSize: 20,
-                              ),
-                            )
-                          : FutureBuilder<String>(
-                              future: getPhoneNum(),
-                              initialData: 'Loading...',
-                              builder: (BuildContext context,
-                                  AsyncSnapshot<String> snapshot) {
-                                if (snapshot.hasData &&
-                                    snapshot.data != 'Loading...') {
-                                  return Text(
-                                    '${snapshot.data}',
-                                    style: TextStyle(
-                                      fontFamily: 'Ubuntu',
-                                      color: Colors.blue,
-                                      fontSize: 20,
-                                    ),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Text(
-                                    '${snapshot.error}',
-                                    style: TextStyle(
-                                      fontFamily: 'Ubuntu',
-                                      color: Colors.red,
-                                      fontSize: 20,
-                                    ),
-                                  );
-                                } else {
-                                  return Row(
-                                    children: [
-                                      Text(
-                                        '${snapshot.data}',
-                                        style: TextStyle(
-                                          fontFamily: 'Ubuntu',
-                                          color: Colors.blue,
-                                          fontSize: 20,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                        width: 10,
-                                        child: CircularProgressIndicator
-                                            .adaptive(),
-                                      ),
-                                    ],
-                                  );
-                                }
-                              }),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      userInfo.phoneNumber != null
-                          ? Icons.verified_user_rounded
-                          : Icons.cancel,
-                      color: userInfo.phoneNumber != null
-                          ? Colors.greenAccent
-                          : Colors.red,
-                      size: 17,
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
                     Text(
-                      userInfo.phoneNumber != null
-                          ? 'Number verified'
-                          : 'Number not verified',
+                      phone ?? '',
                       style: TextStyle(
                         fontFamily: 'Ubuntu',
-                        color: userInfo.phoneNumber != null
-                            ? Colors.greenAccent
-                            : Colors.red,
-                        fontSize: 15,
+                        color: Colors.blue,
+                        fontSize: 20,
                       ),
                     ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(0.0),
-                      child: (userInfo.phoneNumber != null)
-                          ? null
-                          : Container(
-                              height: 30,
-                              width: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.green,
-                              ),
-                              child: TextButton(
-                                  // color: Colors.green,
-                                  child: Text(
-                                    'Verify Now',
-                                    style: TextStyle(
-                                      fontFamily: 'Ubuntu',
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                  onPressed: () async {
-                                    if (userInfo.phoneNumber == null) {
-                                      await phoneVerification();
-                                    }
-                                  }),
-                            ),
-                    ),
                   ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                IconButton(
-                  onPressed: () async {
-                    setState(() {
-                      imgLoading = true;
-                    });
-                    User? refreshedUser = await refreshUser(userInfo);
-                    if (refreshedUser != null) {
-                      setState(() {
-                        imgLoading = false;
-                        userInfo = refreshedUser;
-                      });
-                    }
-                  },
-                  icon: Icon(
-                    Icons.refresh,
-                    color: Colors.blueAccent,
-                  ),
                 ),
                 SizedBox(
                   height: 10,
@@ -373,28 +178,42 @@ class _UserProfileState extends State<UserProfile> {
                   height: 30,
                   width: 150,
                   decoration: BoxDecoration(
-                    color: Colors.blueGrey,
+                    color: Colors.lightGreen,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: TextButton(
-                      child: Text(
-                        'Log Out',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Ubuntu',
-                          color: Colors.black,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.messenger,
+                            size: 15,
+                            color: Colors.white,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            'Chat',
+                            style: TextStyle(
+                              fontFamily: 'Ubuntu',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                       onPressed: () {
                         setState(() {
                           loading = true;
                         });
-                        Future.delayed(Duration(seconds: 1), () {
-                          _auth.signOut();
+                        Navigator.pop(context);
+                        /*Future.delayed(Duration(seconds: 1), () {
+
                           Navigator.pushNamedAndRemoveUntil(
-                              context, LoginScreen.id, (route) => false);
-                        });
+                              context, WelcomeScreen.id, (route) => false);
+                        });*/
                       }),
                 ),
               ],
@@ -404,5 +223,35 @@ class _UserProfileState extends State<UserProfile> {
       ),
     );
   }
+
+  Alert smallErrorMsg(String msg) {
+    return Alert(
+      context: context,
+      title: 'Something Went Wrong!',
+      style: alertStyle,
+      desc: msg,
+      closeIcon: Icon(
+        Icons.close,
+        color: Colors.black,
+      ),
+      buttons: [
+        DialogButton(
+          color: Colors.green,
+          width: 100,
+          height: 30,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text(
+            'Try Again',
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: "Ubuntu",
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
-*/

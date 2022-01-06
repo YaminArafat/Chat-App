@@ -363,7 +363,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               'Password': _password,
             });
             await FirebaseFirestore.instance.collection('$_email').add({
-              'Friend Email': null,
+              'Friend Email': _email,
+              'Friend Name': _firstName! + ' ' + _lastName!,
+              'Friend Image': newUser!.photoURL,
             });
           }
           Navigator.popAndPushNamed(context, LoginScreen.id);
