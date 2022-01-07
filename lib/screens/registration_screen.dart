@@ -362,7 +362,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               'Mobile No': '+88' + _mobile!,
               'Password': _password,
             });
-            await FirebaseFirestore.instance.collection('$_email').add({
+            await FirebaseFirestore.instance.collection('$_email-friends').add({
               'Friend Email': _email,
               'Friend Name': _firstName! + ' ' + _lastName!,
               'Friend Image': newUser!.photoURL,

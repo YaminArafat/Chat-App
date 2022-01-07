@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SingleChildScrollView(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: firebaseFirestore
-                      .collection('${loggedInUser.email}')
+                      .collection('${loggedInUser.email}-friends')
                       .orderBy('Friend Name', descending: false)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -264,9 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         .snapshots(),
                     builder: (context, snapshot) {
                       List<Widget> findFriends = [];
-                      List<Widget> conversations = [];
-                      List<Widget> activeFriends = [];
-                      List<Widget> display = [];
                       if (snapshot.hasData) {
                         try {
                           for (var user in snapshot.data!.docs) {
@@ -344,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           onPressed: () {
                                             firebaseFirestore
                                                 .collection(
-                                                    '${loggedInUser.email}')
+                                                    '${loggedInUser.email}-friends')
                                                 .add({
                                               'Friend Email':
                                                   user.data()['Email'],
@@ -357,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             });
                                             firebaseFirestore
                                                 .collection(
-                                                    '${user.data()['Email']}')
+                                                    '${user.data()['Email']}-friends')
                                                 .add({
                                               'Friend Email':
                                                   loggedInUser.email,
@@ -366,12 +363,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                               'Friend Image':
                                                   loggedInUser.photoURL,
                                             });
+
+                                            Navigator.pushReplacementNamed(
+                                                context, HomeScreen.id);
                                             setState(() {
                                               curIndex = 2;
                                             });
-                                            Navigator.restorablePopAndPushNamed(
-                                                context, HomeScreen.id);
-                                            //setState(() {});
                                           },
                                           child: Row(
                                             children: [
@@ -402,8 +399,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               for (var friend in curUserFriends!.docs) {
                                 if (user.data()['Email'] ==
                                     friend.data()['Friend Email']) {
-                                  findFriends.removeWhere((element) =>
-                                      element.key == Key(user.data()['Email']));
+                                  setState(() {
+                                    findFriends.removeWhere((element) =>
+                                        element.key ==
+                                        Key(user.data()['Email']));
+                                  });
+
+                                  break;
                                 }
                               }
                             }
@@ -474,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SingleChildScrollView(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: firebaseFirestore
-                      .collection('${loggedInUser.email}')
+                      .collection('${loggedInUser.email}-friends')
                       .orderBy('Friend Name', descending: false)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -636,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<bool> check(String id) async {
+  /*Future<bool> check(String id) async {
     var snapshot = await firebaseFirestore
         .collection("$id")
         .orderBy('createdAt', descending: false)
@@ -646,115 +648,171 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       return false;
     }
+  }*/
+  List<String> conversationId = [];
+  late Map<String, String> friendEmail, friendImg, friendName;
+
+  void getIds() async {
+    try {
+      for (var friend in curUserFriends.docs) {
+        List<String> chatId = [
+          friend.data()['Friend Email'],
+          loggedInUser.email,
+        ];
+        chatId.sort();
+        var snapshot = await firebaseFirestore
+            .collection("${chatId[0]}+${chatId[1]}")
+            .orderBy('createdAt', descending: false)
+            .get();
+        if (snapshot.docs.isNotEmpty) {
+          print('ok');
+          setState(() {
+            conversationId.add('${chatId[0]}+${chatId[1]}');
+            friendEmail['${chatId[0]}+${chatId[1]}'] =
+                friend.data()['Friend Email'];
+            friendName['${chatId[0]}+${chatId[1]}'] =
+                friend.data()['Friend Name'];
+            friendImg['${chatId[0]}+${chatId[1]}'] =
+                friend.data()['Friend Image'];
+          });
+        }
+      }
+    } catch (e) {
+      print(e);
+      smallErrorMsg(e.toString());
+    }
   }
 
   dynamic conversations() {
-    for (var friend in curUserFriends.docs) {
-      List<String> chatId = [
-        friend.data()['Friend Email'],
-        loggedInUser.email,
-      ];
-      chatId.sort();
-      String conversationId = chatId[0] + chatId[1];
-      return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: firebaseFirestore
-            .collection("$conversationId")
-            .orderBy('createdAt', descending: false)
-            .snapshots(),
-        builder: (context, snapshot) {
-          List<Widget> conversations = [];
-          if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-            DateTime timeData = snapshot.data!.docs.last['createdAt'].toDate();
-            DateTime currDateTime = DateTime.now();
-            String timeOnly = DateFormat('hh:mm a').format(timeData);
-            String dateTime =
-                DateFormat('hh:mm a, dd/MM/yyyy').format(timeData);
-            conversations.add(Padding(
-              key: Key(friend.data()['Friend Email']),
-              padding: const EdgeInsets.all(10.0),
-              child: GestureDetector(
+    getIds();
+    print(conversationId);
+    try {
+      for (var id in conversationId) {
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: firebaseFirestore
+              .collection("$id")
+              .orderBy('createdAt', descending: false)
+              .snapshots(),
+          builder: (context, snapshot) {
+            List<Widget> conversations = [];
+            if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+              DateTime timeData =
+                  snapshot.data!.docs.last['createdAt'].toDate();
+              DateTime currDateTime = DateTime.now();
+              String timeOnly = DateFormat('hh:mm a').format(timeData);
+              String dateTime = DateFormat('EEE, MMM d y').format(timeData);
+              conversations.add(GestureDetector(
+                key: Key(friendEmail['$id']!),
                 onTap: () {
                   ///
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
                     return ChatScreen(
-                      conversationData: friend.data()['Friend Email'],
+                      conversationData: friendEmail['$id']!,
                     );
                   }));
                 },
-                child: Row(
-                  //crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundImage:
-                          NetworkImage(friend.data()['Friend Image']),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            friend.data()['Friend Name'],
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontFamily: 'Ubuntu',
-                              fontWeight: FontWeight.bold,
-                              color: Colors.orangeAccent,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Card(
+                  color: Colors.white10,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      //crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 25,
+                          backgroundImage: NetworkImage(friendImg['%id']!),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                snapshot.data!.docs.last['text'],
-                                softWrap: true,
-                                overflow: TextOverflow.ellipsis,
+                                friendName['$id']!,
                                 style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 15,
+                                  fontSize: 20,
                                   fontFamily: 'Ubuntu',
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orangeAccent,
                                 ),
                               ),
-                              Text(
-                                currDateTime.difference(timeData).inDays == 1
-                                    ? dateTime
-                                    : timeOnly,
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 10,
-                                  fontFamily: 'Ubuntu',
-                                ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    snapshot.data!.docs.last['sender'] ==
+                                            loggedInUser.email
+                                        ? 'You: ' +
+                                            snapshot.data!.docs.last['text']
+                                        : snapshot.data!.docs.last['text'],
+                                    softWrap: true,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 15,
+                                      fontFamily: 'Ubuntu',
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Text(
+                                    currDateTime.difference(timeData).inDays ==
+                                            1
+                                        ? dateTime
+                                        : timeOnly,
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 10,
+                                      fontFamily: 'Ubuntu',
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ));
-            return Column(
-              children: conversations,
-            );
-          } else {
-            return Center(
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator.adaptive(),
-              ),
-            );
-          }
-        },
+              ));
+              return Column(
+                children: conversations,
+              );
+            } else {
+              return Center(
+                child: SizedBox(
+                  height: 50,
+                  width: 50,
+                  child: CircularProgressIndicator.adaptive(),
+                ),
+              );
+            }
+          },
+        );
+      }
+    } catch (e) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+              height: 50,
+              width: 50,
+              child: CircularProgressIndicator.adaptive(
+                  // backgroundColor: Colors.blue,
+                  )),
+        ],
       );
     }
+    return Column();
   }
 
   @override
@@ -873,6 +931,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: backgroundColor,
         showUnselectedLabels: false,
         items: bottomNavBarItems,
         currentIndex: curIndex,
@@ -891,8 +950,10 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           }
         },
+        unselectedItemColor: Colors.grey,
         unselectedLabelStyle: TextStyle(
           fontFamily: 'Ubuntu',
+          color: Colors.grey,
         ),
         selectedLabelStyle: TextStyle(
           fontFamily: 'Ubuntu',
@@ -901,7 +962,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ModalProgressHUD(
         inAsyncCall: loading,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.symmetric(horizontal: 0),
           child: curIndex == 2
               ? findFriendsStream()
               : (curIndex == 1)
