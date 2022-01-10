@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late var userInfo;
   int curIndex = 0;
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  bool isRequested = false;
   List<BottomNavigationBarItem> bottomNavBarItems = [
     BottomNavigationBarItem(
         icon: Icon(Icons.messenger_outline), label: 'Messages'),
@@ -56,6 +57,27 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return findFriends;
   }*/
+  Function()? friendRequestAction(var user) {
+    return () {
+      firebaseFirestore.collection('${loggedInUser.email}-sent').add({
+        'Friend Email': user.data()['Email'],
+        'Friend Name':
+            user.data()['First Name'] + ' ' + user.data()['Last Name'],
+        'Friend Image': user.data()['Image'],
+      });
+      firebaseFirestore.collection('${user.data()['Email']}-requests').add({
+        'Friend Email': loggedInUser.email,
+        'Friend Name': loggedInUser.displayName,
+        'Friend Image': loggedInUser.photoURL,
+      });
+
+      Navigator.pushReplacementNamed(context, HomeScreen.id);
+      setState(() {
+        curIndex = 2;
+        isRequested = true;
+      });
+    };
+  }
 
   Column findFriendsStream() {
     return Column(
@@ -268,6 +290,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         try {
                           for (var user in snapshot.data!.docs) {
                             if (user.data()['Email'] != loggedInUser.email) {
+                              setState(() {
+                                isRequested = false;
+                              });
                               findFriends.add(Padding(
                                 key: Key(user.data()['Email']),
                                 padding: const EdgeInsets.all(10.0),
@@ -338,38 +363,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       DialogButton(
                                           color: Colors.lightBlue,
-                                          onPressed: () {
-                                            firebaseFirestore
-                                                .collection(
-                                                    '${loggedInUser.email}-friends')
-                                                .add({
-                                              'Friend Email':
-                                                  user.data()['Email'],
-                                              'Friend Name':
-                                                  user.data()['First Name'] +
-                                                      ' ' +
-                                                      user.data()['Last Name'],
-                                              'Friend Image':
-                                                  user.data()['Image'],
-                                            });
-                                            firebaseFirestore
-                                                .collection(
-                                                    '${user.data()['Email']}-friends')
-                                                .add({
-                                              'Friend Email':
-                                                  loggedInUser.email,
-                                              'Friend Name':
-                                                  loggedInUser.displayName,
-                                              'Friend Image':
-                                                  loggedInUser.photoURL,
-                                            });
-
-                                            Navigator.pushReplacementNamed(
-                                                context, HomeScreen.id);
-                                            setState(() {
-                                              curIndex = 2;
-                                            });
-                                          },
+                                          onPressed: isRequested
+                                              ? friendRequestAction(user)
+                                              : null,
                                           child: Row(
                                             children: [
                                               Icon(
