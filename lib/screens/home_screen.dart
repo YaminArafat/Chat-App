@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
@@ -36,27 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Find Friends'),
   ];
   late var curUserFriends;
-  List<Widget> curItems = [];
-  List<Widget> messages = [
-    Text(
-      'Your Messages',
-    ),
-  ];
-  List<Widget> activeFriends = [
-    Text(
-      'Active Friends',
-    ),
-  ];
-
-  /*List<Widget> removeIfFriend(String email, List<Widget> findFriends) {
-    for (var friend in curUserFriends!.docs) {
-      if (email == friend.data()['Friend Email']) {
-        findFriends.removeWhere((element) => element.key == Key(email));
-        break;
-      }
-    }
-    return findFriends;
-  }*/
+  late var sentRequests;
   Function()? friendRequestAction(var user) {
     return () {
       firebaseFirestore.collection('${loggedInUser.email}-sent').add({
@@ -70,196 +51,408 @@ class _HomeScreenState extends State<HomeScreen> {
         'Friend Name': loggedInUser.displayName,
         'Friend Image': loggedInUser.photoURL,
       });
-
-      Navigator.pushReplacementNamed(context, HomeScreen.id);
       setState(() {
         curIndex = 2;
         isRequested = true;
       });
+      // Navigator.pushReplacementNamed(context, HomeScreen.id);
     };
   }
 
+  bool showRequests = false;
   Column findFriendsStream() {
     return Column(
       children: [
         SizedBox(
           height: 10,
         ),
-        Text(
-          'My Friends',
-          style: TextStyle(
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Ubuntu',
-            fontSize: 20,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  showRequests = false;
+                });
+              },
+              child: Text(
+                'My Friends',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  showRequests = true;
+                });
+              },
+              child: Text(
+                'Requests',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Ubuntu',
+                  fontSize: 20,
+                ),
+              ),
+            ),
+          ],
         ),
         Divider(
           color: Colors.grey,
         ),
-        Column(
-          children: [
-            SingleChildScrollView(
-              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: firebaseFirestore
-                      .collection('${loggedInUser.email}-friends')
-                      .orderBy('Friend Name', descending: false)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    List<Widget> friends = [];
-                    if (snapshot.hasData) {
-                      try {
-                        for (var friend in snapshot.data!.docs) {
-                          if (friend.data()['Friend Email'] !=
-                              loggedInUser.email) {
-                            friends.add(Padding(
-                              key: Key(friend.data()['Friend Email']),
-                              padding: const EdgeInsets.all(10.0),
-                              child: GestureDetector(
-                                onTap: () {
-                                  ///
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (context) {
-                                    return UserProfile(
-                                      userData: friend.data()['Friend Email'],
-                                    );
-                                  }));
-                                },
-                                child: Row(
-                                  //crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 25,
-                                      backgroundImage: NetworkImage(
-                                          friend.data()['Friend Image']),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+        showRequests
+            ? Column(
+                children: [
+                  SingleChildScrollView(
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: firebaseFirestore
+                            .collection('${loggedInUser.email}-requests')
+                            .orderBy('Friend Name', descending: false)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          List<Widget> friends = [];
+                          if (snapshot.hasData) {
+                            try {
+                              for (var friend in snapshot.data!.docs) {
+                                if (friend.data()['Friend Email'] !=
+                                    loggedInUser.email) {
+                                  friends.add(Padding(
+                                    // key: Key(friend.data()['Friend Email']),
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        ///
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) {
+                                          return UserProfile(
+                                            userData:
+                                                friend.data()['Friend Email'],
+                                          );
+                                        }));
+                                      },
+                                      child: Row(
+                                        //crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            friend.data()['Friend Name'],
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontFamily: 'Ubuntu',
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.orangeAccent,
-                                            ),
+                                          CircleAvatar(
+                                            radius: 25,
+                                            backgroundImage: NetworkImage(
+                                                friend.data()['Friend Image']),
                                           ),
                                           SizedBox(
-                                            height: 5,
+                                            width: 10,
                                           ),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                Icons.email,
-                                                color: Colors.redAccent,
-                                                size: 12,
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              Flexible(
-                                                child: Text(
-                                                  friend.data()['Friend Email'],
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  friend.data()['Friend Name'],
                                                   style: TextStyle(
-                                                    fontSize: 15,
+                                                    fontSize: 20,
                                                     fontFamily: 'Ubuntu',
-                                                    color: Colors.blue,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.orangeAccent,
                                                   ),
                                                 ),
-                                              ),
-                                            ],
+                                                SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.email,
+                                                      color: Colors.redAccent,
+                                                      size: 12,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Flexible(
+                                                      child: Text(
+                                                        friend.data()[
+                                                            'Friend Email'],
+                                                        style: TextStyle(
+                                                          fontSize: 15,
+                                                          fontFamily: 'Ubuntu',
+                                                          color: Colors.blue,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
                                           ),
+                                          DialogButton(
+                                              color: Colors.lightGreen,
+                                              onPressed: () {
+                                                setState(() {
+                                                  curIndex = 0;
+                                                });
+                                                Navigator.push(context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) {
+                                                  return ChatScreen(
+                                                    conversationData: friend
+                                                        .data()['Friend Email'],
+                                                  );
+                                                }));
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.messenger_outline,
+                                                    size: 15,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    'Chat',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Ubuntu',
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )),
                                         ],
                                       ),
                                     ),
-                                    DialogButton(
-                                        color: Colors.lightGreen,
-                                        onPressed: () {
-                                          setState(() {
-                                            curIndex = 0;
-                                          });
-                                          Navigator.push(context,
-                                              MaterialPageRoute(
-                                                  builder: (context) {
-                                            return ChatScreen(
-                                              conversationData:
-                                                  friend.data()['Friend Email'],
-                                            );
-                                          }));
-                                        },
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.messenger_outline,
-                                              size: 15,
-                                            ),
-                                            SizedBox(
-                                              width: 5,
-                                            ),
-                                            Text(
-                                              'Chat',
-                                              style: TextStyle(
-                                                fontFamily: 'Ubuntu',
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        )),
-                                  ],
-                                ),
-                              ),
-                            ));
+                                  ));
+                                }
+                              }
+                              return Column(
+                                children: friends,
+                              );
+                            } catch (e) {
+                              print(e);
+                              return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'No Friends Added Yet.',
+                                      style: TextStyle(
+                                        color: Colors.lightBlueAccent,
+                                        fontFamily: 'Ubuntu',
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ]);
+                            }
+                          } else if (snapshot.hasError) {
+                            print(snapshot.error.toString());
+                            return Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'No Friends Added Yet.',
+                                    style: TextStyle(
+                                      color: Colors.lightBlueAccent,
+                                      fontFamily: 'Ubuntu',
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ]);
+                          } else {
+                            return Column(children: [
+                              SizedBox(
+                                  height: 50,
+                                  width: 50,
+                                  child: CircularProgressIndicator.adaptive(
+                                      // backgroundColor: Colors.blue,
+                                      )),
+                            ]);
                           }
-                        }
-                        return Column(
-                          children: friends,
-                        );
-                      } catch (e) {
-                        print(e);
-                        return Center(
-                          child: Text(
-                            'No Friends Added Yet.',
-                            style: TextStyle(
-                              color: Colors.lightBlueAccent,
-                              fontFamily: 'Ubuntu',
-                              fontSize: 10,
-                            ),
-                          ),
-                        );
-                      }
-                    } else if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          snapshot.error.toString(),
-                          style: TextStyle(
-                              color: Colors.lightBlueAccent,
-                              fontFamily: 'Ubuntu',
-                              fontSize: 20),
-                        ),
-                      );
-                    } else {
-                      return Center(
-                        child: SizedBox(
-                            height: 50,
-                            width: 50,
-                            child: CircularProgressIndicator.adaptive(
-                                // backgroundColor: Colors.blue,
-                                )),
-                      );
-                    }
-                  }),
-            ),
-          ],
-        ),
+                        }),
+                  ),
+                ],
+              )
+            : Column(
+                children: [
+                  SingleChildScrollView(
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        stream: firebaseFirestore
+                            .collection('${loggedInUser.email}-friends')
+                            .orderBy('Friend Name', descending: false)
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          List<Widget> friends = [];
+                          if (snapshot.hasData) {
+                            try {
+                              for (var friend in snapshot.data!.docs) {
+                                if (friend.data()['Friend Email'] !=
+                                    loggedInUser.email) {
+                                  friends.add(Padding(
+                                    // key: Key(friend.data()['Friend Email']),
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        ///
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) {
+                                          return UserProfile(
+                                            userData:
+                                                friend.data()['Friend Email'],
+                                          );
+                                        }));
+                                      },
+                                      child: Row(
+                                        //crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 25,
+                                            backgroundImage: NetworkImage(
+                                                friend.data()['Friend Image']),
+                                          ),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  friend.data()['Friend Name'],
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontFamily: 'Ubuntu',
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.orangeAccent,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.email,
+                                                      color: Colors.redAccent,
+                                                      size: 12,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Flexible(
+                                                      child: Text(
+                                                        friend.data()[
+                                                            'Friend Email'],
+                                                        style: TextStyle(
+                                                          fontSize: 15,
+                                                          fontFamily: 'Ubuntu',
+                                                          color: Colors.blue,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          DialogButton(
+                                              color: Colors.lightGreen,
+                                              onPressed: () {
+                                                setState(() {
+                                                  curIndex = 0;
+                                                });
+                                                Navigator.push(context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) {
+                                                  return ChatScreen(
+                                                    conversationData: friend
+                                                        .data()['Friend Email'],
+                                                  );
+                                                }));
+                                              },
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.messenger_outline,
+                                                    size: 15,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    'Chat',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Ubuntu',
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                    ),
+                                  ));
+                                }
+                              }
+                              return Column(
+                                children: friends,
+                              );
+                            } catch (e) {
+                              print(e);
+                              return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'No Friends Added Yet.',
+                                      style: TextStyle(
+                                        color: Colors.lightBlueAccent,
+                                        fontFamily: 'Ubuntu',
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ]);
+                            }
+                          } else if (snapshot.hasError) {
+                            print(snapshot.error.toString());
+                            return Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'No Friends Added Yet.',
+                                    style: TextStyle(
+                                      color: Colors.lightBlueAccent,
+                                      fontFamily: 'Ubuntu',
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ]);
+                          } else {
+                            return Column(children: [
+                              SizedBox(
+                                  height: 50,
+                                  width: 50,
+                                  child: CircularProgressIndicator.adaptive(
+                                      // backgroundColor: Colors.blue,
+                                      )),
+                            ]);
+                          }
+                        }),
+                  ),
+                ],
+              ),
         SizedBox(
           height: 10,
         ),
@@ -290,120 +483,242 @@ class _HomeScreenState extends State<HomeScreen> {
                         try {
                           for (var user in snapshot.data!.docs) {
                             if (user.data()['Email'] != loggedInUser.email) {
-                              setState(() {
-                                isRequested = false;
-                              });
-                              findFriends.add(Padding(
-                                key: Key(user.data()['Email']),
-                                padding: const EdgeInsets.all(10.0),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(context,
-                                        MaterialPageRoute(builder: (context) {
-                                      return UserProfile(
-                                          userData: user.data()['Email']);
-                                    }));
-                                  },
-                                  child: Row(
-                                    //crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 25,
-                                        backgroundImage:
-                                            NetworkImage(user.data()['Image']),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              user.data()['First Name'] +
-                                                  ' ' +
-                                                  user.data()['Last Name'],
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontFamily: 'Ubuntu',
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.orangeAccent,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 5,
-                                            ),
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.email,
-                                                  color: Colors.redAccent,
-                                                  size: 12,
-                                                ),
-                                                SizedBox(
-                                                  width: 5,
-                                                ),
-                                                Flexible(
-                                                  child: Text(
-                                                    user.data()['Email'],
-                                                    style: TextStyle(
-                                                      fontSize: 15,
-                                                      fontFamily: 'Ubuntu',
-                                                      color: Colors.blue,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      DialogButton(
-                                          color: Colors.lightBlue,
-                                          onPressed: isRequested
-                                              ? friendRequestAction(user)
-                                              : null,
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.mobile_friendly,
-                                                size: 15,
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              Text(
-                                                'Add Friend',
-                                                style: TextStyle(
-                                                  fontFamily: 'Ubuntu',
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
-                                          )),
-                                      //checkIfFriend(user.data()['Email']),
-                                    ],
-                                  ),
-                                ),
-                              ));
-                              /*findFriends =
-                                  removeIfFriend(user.data()['Email'], findFriends);*/
+                              bool alreadyFriend = false;
                               for (var friend in curUserFriends!.docs) {
                                 if (user.data()['Email'] ==
                                     friend.data()['Friend Email']) {
                                   setState(() {
-                                    findFriends.removeWhere((element) =>
-                                        element.key ==
-                                        Key(user.data()['Email']));
+                                    alreadyFriend = true;
                                   });
-
                                   break;
                                 }
                               }
+                              if (alreadyFriend) {
+                                continue;
+                              } else {
+                                for (var isSent in sentRequests!.docs) {
+                                  if (user.data()['Email'] ==
+                                      isSent.data()['Friend Email']) {
+                                    //setState(() {
+                                    isRequested = true;
+                                    //});
+                                    break;
+                                  }
+                                }
+                                if (isRequested) {
+                                  findFriends.add(Padding(
+                                    //key: Key(user.data()['Email']),
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) {
+                                          return UserProfile(
+                                              userData: user.data()['Email']);
+                                        }));
+                                      },
+                                      child: Row(
+                                        //crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 25,
+                                            backgroundImage: NetworkImage(
+                                                user.data()['Image']),
+                                          ),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  user.data()['First Name'] +
+                                                      ' ' +
+                                                      user.data()['Last Name'],
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontFamily: 'Ubuntu',
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.orangeAccent,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.email,
+                                                      color: Colors.redAccent,
+                                                      size: 12,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Flexible(
+                                                      child: Text(
+                                                        user.data()['Email'],
+                                                        style: TextStyle(
+                                                          fontSize: 15,
+                                                          fontFamily: 'Ubuntu',
+                                                          color: Colors.blue,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          DialogButton(
+                                              color: Colors.grey,
+                                              onPressed: null,
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.pending,
+                                                    size: 15,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    'Sent',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Ubuntu',
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )),
+                                          //checkIfFriend(user.data()['Email']),
+                                        ],
+                                      ),
+                                    ),
+                                  ));
+                                } else {
+                                  findFriends.add(Padding(
+                                    //key: Key(user.data()['Email']),
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) {
+                                          return UserProfile(
+                                              userData: user.data()['Email']);
+                                        }));
+                                      },
+                                      child: Row(
+                                        //crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 25,
+                                            backgroundImage: NetworkImage(
+                                                user.data()['Image']),
+                                          ),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  user.data()['First Name'] +
+                                                      ' ' +
+                                                      user.data()['Last Name'],
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontFamily: 'Ubuntu',
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.orangeAccent,
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.email,
+                                                      color: Colors.redAccent,
+                                                      size: 12,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Flexible(
+                                                      child: Text(
+                                                        user.data()['Email'],
+                                                        style: TextStyle(
+                                                          fontSize: 15,
+                                                          fontFamily: 'Ubuntu',
+                                                          color: Colors.blue,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          DialogButton(
+                                              color: Colors.lightBlue,
+                                              onPressed:
+                                                  friendRequestAction(user),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.mobile_friendly,
+                                                    size: 15,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    'Add Friend',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Ubuntu',
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )),
+                                          //checkIfFriend(user.data()['Email']),
+                                        ],
+                                      ),
+                                    ),
+                                  ));
+                                }
+                              }
+                              /*findFriends =
+                                  removeIfFriend(user.data()['Email'], findFriends);
+                                for (var friend in curUserFriends!.docs) {
+                                  if (user.data()['Email'] ==
+                                      friend.data()['Friend Email']) {
+                                    setState(() {
+                                      findFriends.removeWhere((element) =>
+                                      element.key ==
+                                          Key(user.data()['Email']));
+                                    });
+
+                                    break;
+                                  }
+                                }*/
+
                             }
                           }
                           return Column(
@@ -411,34 +726,41 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         } catch (e) {
                           print(e);
-                          return Center(
-                            child: SizedBox(
-                                height: 50,
-                                width: 50,
-                                child: CircularProgressIndicator.adaptive(
-                                    // backgroundColor: Colors.blue,
-                                    )),
-                          );
+                          return Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                    height: 50,
+                                    width: 50,
+                                    child: CircularProgressIndicator.adaptive(
+                                        // backgroundColor: Colors.blue,
+                                        )),
+                              ]);
                         }
                       } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            snapshot.error.toString(),
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontFamily: 'Ubuntu',
-                                fontSize: 20),
-                          ),
-                        );
+                        print(snapshot.error.toString());
+                        return Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Not Available Now!',
+                                style: TextStyle(
+                                    color: Colors.blue,
+                                    fontFamily: 'Ubuntu',
+                                    fontSize: 20),
+                              ),
+                            ]);
                       } else {
-                        return Center(
-                          child: SizedBox(
-                              height: 50,
-                              width: 50,
-                              child: CircularProgressIndicator.adaptive(
-                                  // backgroundColor: Colors.blue,
-                                  )),
-                        );
+                        return Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                  height: 50,
+                                  width: 50,
+                                  child: CircularProgressIndicator.adaptive(
+                                      // backgroundColor: Colors.blue,
+                                      )),
+                            ]);
                       }
                     }),
               ),
@@ -483,7 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (friend.data()['Friend Email'] !=
                               loggedInUser.email) {
                             friends.add(Padding(
-                              key: Key(friend.data()['Friend Email']),
+                              // key: Key(friend.data()['Friend Email']),
                               padding: const EdgeInsets.all(10.0),
                               child: GestureDetector(
                                 onTap: () {
@@ -595,8 +917,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       } catch (e) {
                         print(e);
-                        return Center(
-                          child: Text(
+                        return Column(children: [
+                          Text(
                             'No Friends Added Yet.',
                             style: TextStyle(
                               color: Colors.lightBlueAccent,
@@ -604,27 +926,27 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontSize: 10,
                             ),
                           ),
-                        );
+                        ]);
                       }
                     } else if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
+                      return Column(children: [
+                        Text(
                           snapshot.error.toString(),
                           style: TextStyle(
                               color: Colors.lightBlueAccent,
                               fontFamily: 'Ubuntu',
                               fontSize: 20),
                         ),
-                      );
+                      ]);
                     } else {
-                      return Center(
-                        child: SizedBox(
+                      return Column(children: [
+                        SizedBox(
                             height: 50,
                             width: 50,
                             child: CircularProgressIndicator.adaptive(
                                 // backgroundColor: Colors.blue,
                                 )),
-                      );
+                      ]);
                     }
                   }),
             ),
@@ -657,18 +979,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ];
         chatId.sort();
         var snapshot = await firebaseFirestore
-            .collection("${chatId[0]}+${chatId[1]}")
+            .collection("${chatId[0]}-${chatId[1]}")
             .orderBy('createdAt', descending: false)
             .get();
         if (snapshot.docs.isNotEmpty) {
           print('ok');
           setState(() {
-            conversationId.add('${chatId[0]}+${chatId[1]}');
-            friendEmail['${chatId[0]}+${chatId[1]}'] =
+            conversationId.add('${chatId[0]}-${chatId[1]}');
+            friendEmail['${chatId[0]}-${chatId[1]}'] =
                 friend.data()['Friend Email'];
-            friendName['${chatId[0]}+${chatId[1]}'] =
+            friendName['${chatId[0]}-${chatId[1]}'] =
                 friend.data()['Friend Name'];
-            friendImg['${chatId[0]}+${chatId[1]}'] =
+            friendImg['${chatId[0]}-${chatId[1]}'] =
                 friend.data()['Friend Image'];
           });
         }
@@ -698,7 +1020,7 @@ class _HomeScreenState extends State<HomeScreen> {
               String timeOnly = DateFormat('hh:mm a').format(timeData);
               String dateTime = DateFormat('EEE, MMM d y').format(timeData);
               conversations.add(GestureDetector(
-                key: Key(friendEmail['$id']!),
+                // key: Key(friendEmail['$id']!),
                 onTap: () {
                   ///
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -784,13 +1106,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: conversations,
               );
             } else {
-              return Center(
-                child: SizedBox(
-                  height: 50,
-                  width: 50,
-                  child: CircularProgressIndicator.adaptive(),
-                ),
-              );
+              return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: CircularProgressIndicator.adaptive(),
+                    ),
+                  ]);
             }
           },
         );
@@ -990,6 +1314,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // userInfo = await firebaseFirestore.collection("UserInfo").get();
         curUserFriends =
             await firebaseFirestore.collection('${loggedInUser.email}').get();
+        sentRequests = await firebaseFirestore
+            .collection('${loggedInUser.email}-sent')
+            .get();
         print(loggedInUser);
       }
     } catch (e) {

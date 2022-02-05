@@ -19,8 +19,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   String? errorTextEmail;
   String? errorTextPassword;
-  String _email = '';
-  String _password = '';
+  String? _email;
+  String? _password;
   bool hidePass = true;
   bool loading = false;
 
@@ -143,14 +143,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool logInErrorCheck() {
-    if (_email.isEmpty) {
+    setState(() {});
+    if (_email == null) {
       errorTextEmail = 'This field can not be empty.';
     } else {
       errorTextEmail = null;
     }
-    if (_password.isEmpty) {
+    if (_password == null) {
       errorTextPassword = 'This field can not be empty.';
-    } else if (_password.length < 8) {
+    } else if (_password!.length < 8) {
       errorTextPassword = 'Password length must be minimum 8';
     } else if (errorTextEmail == null) {
       errorTextPassword = null;
@@ -169,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
           loading = true;
         });
         final loginUser = await _auth.signInWithEmailAndPassword(
-            email: _email, password: _password);
+            email: _email!, password: _password!);
         if (loginUser != null) {
           Navigator.pushNamed(context, HomeScreen.id);
           setState(() {

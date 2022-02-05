@@ -361,9 +361,9 @@ class _ChatScreenState extends State<ChatScreen> {
               img = NetworkImage(user.data()['Image']);
               phone = user.data()['Mobile No'];
               imgLoading = false;
-              conversationId = chatId[0] + chatId[1];
+              conversationId = chatId[0] + '-' + chatId[1];
             });
-            firebaseFirestore.collection('$conversationId}').get();
+            firebaseFirestore.collection('$conversationId').get();
             break;
           }
         }
