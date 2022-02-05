@@ -194,31 +194,82 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ),
                                           ),
                                           DialogButton(
-                                              color: Colors.lightGreen,
+                                              color: Colors.green,
                                               onPressed: () {
-                                                setState(() {
-                                                  curIndex = 0;
+                                                FirebaseFirestore.instance
+                                                    .collection(
+                                                        '${loggedInUser.email}-friends')
+                                                    .add({
+                                                  'Friend Email': friend
+                                                      .data()['Friend Email'],
+                                                  'Friend Name': friend
+                                                      .data()['Friend Name'],
+                                                  'Friend Image': friend
+                                                      .data()['Friend Image'],
                                                 });
-                                                Navigator.push(context,
-                                                    MaterialPageRoute(
-                                                        builder: (context) {
-                                                  return ChatScreen(
-                                                    conversationData: friend
-                                                        .data()['Friend Email'],
-                                                  );
-                                                }));
+                                                FirebaseFirestore.instance
+                                                    .collection(
+                                                        '${friend.data()['Friend Email']}-friends')
+                                                    .add({
+                                                  'Friend Email':
+                                                      loggedInUser.email,
+                                                  'Friend Name':
+                                                      loggedInUser.displayName,
+                                                  'Friend Image':
+                                                      loggedInUser.photoURL,
+                                                });
+                                                FirebaseFirestore.instance
+                                                    .collection(
+                                                        '${loggedInUser.email}-requests')
+                                                    .where("Friend Email",
+                                                        isEqualTo:
+                                                            friend.data()[
+                                                                'Friend Email'])
+                                                    .get()
+                                                    .then((value) {
+                                                  value.docs.forEach((element) {
+                                                    FirebaseFirestore.instance
+                                                        .collection(
+                                                            '${loggedInUser.email}-requests')
+                                                        .doc(element.id)
+                                                        .delete()
+                                                        .then((value) {
+                                                      print("Success!");
+                                                    });
+                                                  });
+                                                });
+                                                FirebaseFirestore.instance
+                                                    .collection(
+                                                        '${friend.data()['Friend Email']}-sent')
+                                                    .where("Friend Email",
+                                                        isEqualTo:
+                                                            loggedInUser.email)
+                                                    .get()
+                                                    .then((value) {
+                                                  value.docs.forEach((element) {
+                                                    FirebaseFirestore.instance
+                                                        .collection(
+                                                            '${friend.data()['Friend Email']}-sent')
+                                                        .doc(element.id)
+                                                        .delete()
+                                                        .then((value) {
+                                                      print("Success!");
+                                                    });
+                                                  });
+                                                });
+                                                getCurrentUserFriends();
                                               },
                                               child: Row(
                                                 children: [
                                                   Icon(
-                                                    Icons.messenger_outline,
+                                                    Icons.check_circle,
                                                     size: 15,
                                                   ),
                                                   SizedBox(
                                                     width: 5,
                                                   ),
                                                   Text(
-                                                    'Chat',
+                                                    'Accept',
                                                     style: TextStyle(
                                                       fontFamily: 'Ubuntu',
                                                       fontSize: 10,
@@ -243,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'No Friends Added Yet.',
+                                      'No Requests',
                                       style: TextStyle(
                                         color: Colors.lightBlueAccent,
                                         fontFamily: 'Ubuntu',
@@ -1298,6 +1349,11 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     getCurrentUser();
     // getCurUserFriends();
+  }
+
+  void getCurrentUserFriends() async {
+    curUserFriends =
+        await firebaseFirestore.collection('${loggedInUser.email}').get();
   }
 
   void getCurrentUser() async {
