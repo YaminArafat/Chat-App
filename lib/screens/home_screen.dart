@@ -1007,183 +1007,142 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /*Future<bool> check(String id) async {
-    var snapshot = await firebaseFirestore
-        .collection("$id")
-        .orderBy('createdAt', descending: false)
-        .get();
-    if (snapshot.docs.isNotEmpty) {
-      return true;
-    } else {
-      return false;
-    }
-  }*/
   List<String> conversationId = [];
   late Map<String, String> friendEmail, friendImg, friendName;
+  dynamic getSnapshot(String conversationID) {
+    return firebaseFirestore
+        .collection(conversationID)
+        .orderBy('createdAt', descending: false)
+        .snapshots();
+  }
 
-  void getIds() async {
-    try {
-      for (var friend in curUserFriends.docs) {
+  Widget getConversation(String conversationID, String friendEmail,
+      String friendName, String friendImage) {
+    return FutureBuilder<QuerySnapshot>(
+      future: firebaseFirestore
+          .collection(conversationID)
+          .orderBy('createdAt', descending: false)
+          .get(),
+      builder: (BuildContext context, snapshot) {
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          print('ok');
+          DateTime timeData = snapshot.data!.docs.last['createdAt'].toDate();
+          DateTime currDateTime = DateTime.now();
+          String timeOnly = DateFormat('hh:mm a').format(timeData);
+          String dateTime = DateFormat('EEE, MMM d y').format(timeData);
+          return GestureDetector(
+            // key: Key(friendEmail['$id']!),
+            onTap: () {
+              ///
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return ChatScreen(
+                  conversationData: friendEmail,
+                );
+              }));
+            },
+            child: Card(
+              color: Colors.white10,
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Row(
+                  //crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundImage: NetworkImage(friendImage),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            friendName,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontFamily: 'Ubuntu',
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orangeAccent,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                snapshot.data!.docs.last['sender'] ==
+                                        loggedInUser.email
+                                    ? 'You: ' + snapshot.data!.docs.last['text']
+                                    : snapshot.data!.docs.last['text'],
+                                softWrap: true,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 15,
+                                  fontFamily: 'Ubuntu',
+                                ),
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                currDateTime.difference(timeData).inDays == 1
+                                    ? dateTime
+                                    : timeOnly,
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 10,
+                                  fontFamily: 'Ubuntu',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        } else {
+          return SizedBox();
+        }
+      },
+    );
+  }
+
+  List<Widget> getRest() {
+    List<Widget> column = [];
+    for (var friend in curUserFriends!.docs) {
+      print(friend.data()['Friend Email']);
+      if (friend.data()['Friend Email'] != loggedInUser.email) {
         List<String> chatId = [
           friend.data()['Friend Email'],
           loggedInUser.email,
         ];
         chatId.sort();
-        var snapshot = await firebaseFirestore
-            .collection("${chatId[0]}-${chatId[1]}")
-            .orderBy('createdAt', descending: false)
-            .get();
-        if (snapshot.docs.isNotEmpty) {
-          print('ok');
-          setState(() {
-            conversationId.add('${chatId[0]}-${chatId[1]}');
-            friendEmail['${chatId[0]}-${chatId[1]}'] =
-                friend.data()['Friend Email'];
-            friendName['${chatId[0]}-${chatId[1]}'] =
-                friend.data()['Friend Name'];
-            friendImg['${chatId[0]}-${chatId[1]}'] =
-                friend.data()['Friend Image'];
-          });
-        }
+        print('chatId');
+        column.add(getConversation(
+            "${chatId[0]}-${chatId[1]}",
+            friend.data()['Friend Email'],
+            friend.data()['Friend Name'],
+            friend.data()['Friend Image']));
       }
-    } catch (e) {
-      print(e);
-      smallErrorMsg(e.toString());
     }
+    return column;
   }
 
-  dynamic conversations() {
-    getIds();
-    print(conversationId);
-    try {
-      for (var id in conversationId) {
-        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: firebaseFirestore
-              .collection("$id")
-              .orderBy('createdAt', descending: false)
-              .snapshots(),
-          builder: (context, snapshot) {
-            List<Widget> conversations = [];
-            if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-              DateTime timeData =
-                  snapshot.data!.docs.last['createdAt'].toDate();
-              DateTime currDateTime = DateTime.now();
-              String timeOnly = DateFormat('hh:mm a').format(timeData);
-              String dateTime = DateFormat('EEE, MMM d y').format(timeData);
-              conversations.add(GestureDetector(
-                // key: Key(friendEmail['$id']!),
-                onTap: () {
-                  ///
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return ChatScreen(
-                      conversationData: friendEmail['$id']!,
-                    );
-                  }));
-                },
-                child: Card(
-                  color: Colors.white10,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Row(
-                      //crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 25,
-                          backgroundImage: NetworkImage(friendImg['%id']!),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                friendName['$id']!,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontFamily: 'Ubuntu',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.orangeAccent,
-                                ),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              Row(
-                                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  Text(
-                                    snapshot.data!.docs.last['sender'] ==
-                                            loggedInUser.email
-                                        ? 'You: ' +
-                                            snapshot.data!.docs.last['text']
-                                        : snapshot.data!.docs.last['text'],
-                                    softWrap: true,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 15,
-                                      fontFamily: 'Ubuntu',
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    currDateTime.difference(timeData).inDays ==
-                                            1
-                                        ? dateTime
-                                        : timeOnly,
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 10,
-                                      fontFamily: 'Ubuntu',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ));
-              return Column(
-                children: conversations,
-              );
-            } else {
-              return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 50,
-                      width: 50,
-                      child: CircularProgressIndicator.adaptive(),
-                    ),
-                  ]);
-            }
-          },
-        );
-      }
-    } catch (e) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-              height: 50,
-              width: 50,
-              child: CircularProgressIndicator.adaptive(
-                  // backgroundColor: Colors.blue,
-                  )),
-        ],
-      );
-    }
-    return Column();
+  Column messages() {
+    return Column(
+      children: getRest(),
+    );
   }
 
   @override
@@ -1338,7 +1297,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ? findFriendsStream()
               : (curIndex == 1)
                   ? activeFriendsStream()
-                  : conversations(),
+                  : SingleChildScrollView(
+                      child: messages(),
+                    ),
         ),
       ),
     );
@@ -1352,8 +1313,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void getCurrentUserFriends() async {
-    curUserFriends =
-        await firebaseFirestore.collection('${loggedInUser.email}').get();
+    curUserFriends = await firebaseFirestore
+        .collection('${loggedInUser.email}-friends')
+        .get();
   }
 
   void getCurrentUser() async {
@@ -1368,8 +1330,9 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         });
         // userInfo = await firebaseFirestore.collection("UserInfo").get();
-        curUserFriends =
-            await firebaseFirestore.collection('${loggedInUser.email}').get();
+        curUserFriends = await firebaseFirestore
+            .collection('${loggedInUser.email}-friends')
+            .get();
         sentRequests = await firebaseFirestore
             .collection('${loggedInUser.email}-sent')
             .get();
