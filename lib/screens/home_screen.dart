@@ -59,6 +59,26 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
+  Future<bool> isSent(String email) async {
+    var x = await firebaseFirestore
+        .collection('${loggedInUser.email}-sent')
+        .where('Friend Email', isEqualTo: email)
+        .get();
+    if (x.docs.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void middle(String email) {
+    isSent(email).then((value) {
+      setState(() {
+        isRequested = value;
+      });
+    });
+  }
+
   bool showRequests = false;
   Column findFriendsStream() {
     return Column(
@@ -546,14 +566,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               print('yes');
                               continue;
                             } else {
-                              for (var isSent in sentRequests!.docs) {
-                                if (user.data()['Email'] ==
-                                    isSent.data()['Friend Email']) {
-                                  isRequested = true;
-                                  break;
-                                }
-                              }
-                              if (isRequested) {
+                              print('else');
+                              //middle(user.data()['Email']);
+                              if (true) {
+                                // print('ggvvvvvh');
                                 findFriends.add(Padding(
                                   //key: Key(user.data()['Email']),
                                   padding: const EdgeInsets.all(10.0),
@@ -747,6 +763,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ));
                               }
+
+                              /*for (var isSent in allSent) {
+                                if (user.data()['Email'] ==
+                                    isSent.data()['Friend Email']) {
+                                  isSent = true;
+                                  break;
+                                  break;
+                                }
+                              }*/
                             }
                           }
                         }
